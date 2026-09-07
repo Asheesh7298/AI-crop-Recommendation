@@ -372,6 +372,13 @@ footer .tag{font-family:var(--mono);font-size:11px;letter-spacing:.02em}
           </div>
           <div class="hint" id="wHint">Live weather fills temperature, humidity and rainfall. Manual entry works too.</div>
         </div>
+        <div class="live" style="margin-top:13px">
+          <button class="wbtn" id="liveBtn" type="button" style="width:100%;justify-content:center">
+            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14 0M8.5 16.1a6 6 0 0 1 7 0M2 8.82a15 15 0 0 1 20 0"/><path d="M12 20h.01"/></svg>
+            <span class="ltxt">Live sensor feed</span>
+          </button>
+          <div class="hint" id="liveMsg">Off — stream from an ESP32 or the simulator.</div>
+        </div>
         <div class="glabel mt">Sensor readings</div>
         <div class="sliders" id="sliders"></div>
         <button class="go" id="go" type="button">
@@ -490,6 +497,27 @@ el("fetchW").addEventListener("click",()=>{
     toast("Loaded "+w.source);
   }).catch(()=>toast("Weather request failed"))
   .finally(()=>{btn.disabled=false;label.textContent=txt;});
+});
+
+/* ---------- live IoT sensor feed ---------- */
+function setSlider(id,val){const s=SLIDERS.find(x=>x.id===id);if(!s)return;const inp=el(id);if(!inp)return;
+  inp.value=val;el("v_"+id).textContent=val;inp.style.setProperty("--fill",fillOf(s,parseFloat(val)));}
+let livePoll=null,lastLiveTs=0;
+el("liveBtn").addEventListener("click",()=>{
+  const txt=el("liveBtn").querySelector(".ltxt");
+  if(livePoll){clearInterval(livePoll);livePoll=null;txt.textContent="Live sensor feed";
+    el("liveMsg").textContent="Off — stream from an ESP32 or the simulator.";return;}
+  txt.textContent="Stop live feed";el("liveMsg").textContent="Waiting for a device…";
+  const tick=()=>fetch("/api/latest").then(r=>r.json()).then(d=>{
+    if(!d||!d.reading){el("liveMsg").textContent="Waiting for a device…";return;}
+    el("liveMsg").textContent="Live: "+d.device_id+" · "+d.age_seconds+"s ago";
+    if(d.ts&&d.ts!==lastLiveTs){lastLiveTs=d.ts;const r=d.reading;
+      ["N","P","K","ph","soil_moisture","temperature","humidity","rainfall"].forEach(k=>{
+        if(r[k]!=null)setSlider(k,r[k]);});
+      el("go").click();  // auto-run the recommendation on each new reading
+    }
+  }).catch(()=>{el("liveMsg").textContent="Feed error — is the server running?";});
+  tick();livePoll=setInterval(tick,3000);
 });
 
 /* ---------- skeleton while predicting ---------- */

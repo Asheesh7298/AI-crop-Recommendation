@@ -114,11 +114,21 @@ Notes:
 - The **free tier sleeps after ~15 min idle** (~30 s cold start on the next visit) — fine for a demo/viva.
 - Every `git push` auto-redeploys.
 
-## 🔌 IoT module (future scope)
+## 🔌 IoT module
 
-An **ESP32** with **NPK, pH, DHT22 and soil-moisture** sensors POSTs live readings to a
-`/predict` endpoint for automatic, real-time recommendations. The dashboard already accepts
-manual or sensor values interchangeably.
+An **ESP32** with **NPK, pH, DHT22 and soil-moisture** sensors streams live readings to the
+app, which stores them and returns a real-time recommendation. Implemented and demoable
+**without hardware** via a device simulator — see [`iot/`](iot/):
+
+```bash
+python main.py                 # terminal 1
+python iot/iot_simulator.py    # terminal 2 — streams live readings
+```
+Then click **Live sensor feed** in the dashboard to watch it auto-fill and re-recommend.
+
+- **Device → server:** `POST /api/ingest` (the ESP32 endpoint) — `iot/esp32_sensor.ino` is the flashable firmware.
+- **Server → dashboard:** `GET /api/latest` powers the live-sensor mode.
+- Hardware wiring, bill of materials, and the full data-flow diagram are in [`iot/README.md`](iot/README.md).
 
 ---
 

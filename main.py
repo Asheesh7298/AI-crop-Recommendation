@@ -11,6 +11,7 @@ Then open http://localhost:5000
 """
 
 import os
+import time
 from typing import Optional
 
 from dotenv import load_dotenv
@@ -19,7 +20,7 @@ load_dotenv()  # load OPENWEATHER_API_KEY from .env before anything else
 import numpy as np
 import pandas as pd
 import joblib
-from fastapi import FastAPI
+from fastapi import FastAPI, Header
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -32,6 +33,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 STATIC = os.path.join(BASE, "static")
 MODEL_PATH = os.path.join(BASE, "crop_model.pkl")
 _bundle = joblib.load(MODEL_PATH) if os.path.exists(MODEL_PATH) else None
+_latest = None  # most recent IoT device reading (kept in memory)
 
 app = FastAPI(title="Crop Recommendation AI")
 app.add_middleware(
@@ -101,34 +103,24 @@ def api_weather(city: str = "Delhi"):
     return weather_mod.get_weather(city)
 
 
-@app.post("/api/predict")
-def api_predict(inp: SoilInput):
-    if _bundle is None:
-        return JSONResponse({"error": "model_not_trained"}, status_code=503)
-
-    N, P, K = inp.N, inp.P, inp.K
-    ph, rainfall = inp.ph, inp.rainfall
+def analyze(N, P, K, temperature, humidity, ph, rainfall, soil_moisture):
+    """Run the full pipeline for one reading. Shared by /api/predict and /api/ingest."""
     season_now = season_mod.current_season()
 
-    # Stage 1 - fertility
-    frep = fertility.assess(N, P, K, ph)
-
-    # Stage 2 - recommendation
-    row = pd.DataFrame([[N, P, K, inp.temperature, inp.humidity, ph, rainfall]], columns=FEATURES)
-    ranked = predict_ranked(_bundle, row, top_n=6)
+    frep = fertility.assess(N, P, K, ph)                                   # Stage 1
+    row = pd.DataFrame([[N, P, K, temperature, humidity, ph, rainfall]], columns=FEATURES)
+    ranked = predict_ranked(_bundle, row, top_n=6)                         # Stage 2
     in_season = [(c, p) for c, p in ranked if season_mod.is_in_season(c, season_now)]
     display = in_season if in_season else ranked
     best_crop, best_p = display[0]
     top = [{"crop": c, "emoji": emoji(c), "confidence": round(p, 4),
             "in_season": season_mod.is_in_season(c, season_now)} for c, p in display[:4]]
 
-    # Stage 3 - optimization
-    candidates = [c for c, _ in display[:4]]
+    candidates = [c for c, _ in display[:4]]                               # Stage 3
     fert_costs = {c: fertilizer.estimated_cost(c, N, P, K, _bundle["crop_means"]) for c in candidates}
     profit = yield_profit.rank_by_profit(candidates, fert_costs)
 
-    # Stage 4 - explanation
-    pairs = explain.explain_instance(_bundle, row.values[0]) or []
+    pairs = explain.explain_instance(_bundle, row.values[0]) or []         # Stage 4
     explanation = [{"feature": f, "value": round(float(v), 4)} for f, v in pairs]
 
     return {
@@ -141,11 +133,64 @@ def api_predict(inp: SoilInput):
         "profit": profit,
         "fertilizer": {"tips": fertilizer.advise(best_crop, N, P, K, _bundle["crop_means"]),
                        "cost": fertilizer.estimated_cost(best_crop, N, P, K, _bundle["crop_means"])},
-        "irrigation": irrigation.advise(best_crop, rainfall, inp.soil_moisture),
+        "irrigation": irrigation.advise(best_crop, rainfall, soil_moisture),
         "rotation": rotation.suggest(best_crop),
         "explain": explanation,
         "model": {"name": _bundle["model_name"], "accuracy": _bundle["accuracy"]},
     }
+
+
+@app.post("/api/predict")
+def api_predict(inp: SoilInput):
+    if _bundle is None:
+        return JSONResponse({"error": "model_not_trained"}, status_code=503)
+    return analyze(inp.N, inp.P, inp.K, inp.temperature, inp.humidity,
+                   inp.ph, inp.rainfall, inp.soil_moisture)
+
+
+# ---------------- IoT device endpoints ----------------
+class SensorReading(SoilInput):
+    """What an ESP32 field device POSTs to /api/ingest."""
+    device_id: str = "esp32-01"
+
+
+@app.post("/api/ingest")
+def api_ingest(reading: SensorReading, x_device_token: Optional[str] = Header(default=None)):
+    """
+    Ingestion endpoint for IoT sensor rigs. An ESP32 reads NPK/pH/DHT22/
+    soil-moisture and POSTs the JSON here. We store it as the latest reading
+    (so the dashboard's live mode can show it) and return the recommendation
+    back to the device. Optional auth: set DEVICE_TOKEN to require a matching
+    X-Device-Token header.
+    """
+    token = os.environ.get("DEVICE_TOKEN")
+    if token and x_device_token != token:
+        return JSONResponse({"error": "unauthorized"}, status_code=401)
+    if _bundle is None:
+        return JSONResponse({"error": "model_not_trained"}, status_code=503)
+
+    result = analyze(reading.N, reading.P, reading.K, reading.temperature,
+                     reading.humidity, reading.ph, reading.rainfall, reading.soil_moisture)
+
+    global _latest
+    _latest = {
+        "device_id": reading.device_id,
+        "ts": time.time(),
+        "reading": {"N": reading.N, "P": reading.P, "K": reading.K,
+                    "ph": reading.ph, "soil_moisture": reading.soil_moisture,
+                    "temperature": reading.temperature, "humidity": reading.humidity,
+                    "rainfall": reading.rainfall},
+        "best": result["best"],
+    }
+    return {"stored": True, "device_id": reading.device_id, "result": result}
+
+
+@app.get("/api/latest")
+def api_latest():
+    """Latest device reading, for the dashboard's live-sensor mode."""
+    if _latest is None:
+        return {"reading": None}
+    return {**_latest, "age_seconds": round(time.time() - _latest["ts"], 1)}
 
 
 if __name__ == "__main__":
