@@ -96,6 +96,24 @@ Without a key, the app simply uses the manual weather sliders.
 
 ---
 
+## ☁️ Deploy (Render — free)
+
+The repo includes a Render blueprint (`render.yaml`).
+
+1. Push the repo to GitHub (already done).
+2. Go to **[render.com](https://render.com)** → sign in with GitHub.
+3. **New + → Blueprint** → pick the `AI-crop-Recommendation` repo → **Apply**.
+   Render reads `render.yaml`, installs `requirements.txt`, and starts
+   `uvicorn main:app --host 0.0.0.0 --port $PORT`.
+4. In the service's **Environment** tab, set **`OPENWEATHER_API_KEY`** to your key
+   (it's marked `sync: false`, so it lives only in the dashboard, never in git).
+5. Wait for the build, then open the `…onrender.com` URL.
+
+Notes:
+- Python is pinned to 3.12.6 (`.python-version`) for reliable ML wheels.
+- The **free tier sleeps after ~15 min idle** (~30 s cold start on the next visit) — fine for a demo/viva.
+- Every `git push` auto-redeploys.
+
 ## 🔌 IoT module (future scope)
 
 An **ESP32** with **NPK, pH, DHT22 and soil-moisture** sensors POSTs live readings to a

@@ -1,0 +1,16 @@
+# Render Blueprint — deploys the FastAPI app as a free web service.
+# In Render: New + -> Blueprint -> pick this repo. Then set the
+# OPENWEATHER_API_KEY value in the dashboard (it is a secret, not in git).
+services:
+  - type: web
+    name: crop-recommendation-ai
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.6
+      - key: OPENWEATHER_API_KEY
+        sync: false   # paste your key in the Render dashboard, not here
