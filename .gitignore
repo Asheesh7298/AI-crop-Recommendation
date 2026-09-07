@@ -1,0 +1,23 @@
+# secrets — never commit the real key
+.env
+
+# local tooling / editor / agent dirs
+.claude/
+.codex/
+.impeccable/
+.vscode/
+.idea/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# logs / temp
+*.log
+srv.log
+
+# The trained model (7.4 MB) IS committed so the app runs after clone.
+# To keep the repo lean instead, uncomment the next line and run train_model.py.
+# crop_model.pkl
