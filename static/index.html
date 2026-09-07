@@ -422,6 +422,8 @@ footer .tag{font-family:var(--mono);font-size:11px;letter-spacing:.02em}
   const saved=(()=>{try{return localStorage.getItem("crop-theme")}catch(e){return null}})();
   if(saved)document.documentElement.setAttribute("data-theme",saved);
   else if(matchMedia("(prefers-color-scheme: light)").matches)document.documentElement.setAttribute("data-theme","light");
+  const up=new URLSearchParams(location.search).get("theme");
+  if(up==="light"||up==="dark")document.documentElement.setAttribute("data-theme",up);
 })();
 document.getElementById("theme").addEventListener("click",()=>{
   const cur=document.documentElement.getAttribute("data-theme")==="light"?"dark":"light";
@@ -519,6 +521,9 @@ el("liveBtn").addEventListener("click",()=>{
   }).catch(()=>{el("liveMsg").textContent="Feed error — is the server running?";});
   tick();livePoll=setInterval(tick,3000);
 });
+
+/* demo: opening /?demo=1 auto-runs a recommendation (handy for screenshots/links) */
+if(new URLSearchParams(location.search).has("demo")){setTimeout(()=>{el("go").click();setTimeout(()=>window.scrollTo(0,0),1400);},500);}
 
 /* ---------- skeleton while predicting ---------- */
 function skeleton(){
