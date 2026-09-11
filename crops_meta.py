@@ -52,6 +52,50 @@ CROP_EMOJI = {
 # approximate irrigation depth per season for each water class (mm)
 WATER_MM = {"low": 350, "medium": 650, "high": 1100}
 
+# Ideal sowing-month windows (month numbers, 1=Jan). India-oriented and
+# approximate, derived from each crop's Kharif/Rabi/Zaid/Perennial season.
+# Used to tell the farmer whether the month they picked is the right time to
+# sow, and if not, when to start.
+SOW_MONTHS = {
+    "rice":        [6, 7],        # Kharif — monsoon onset / transplanting
+    "maize":       [6, 7],        # Kharif
+    "cotton":      [5, 6],        # Kharif — sown just before monsoon
+    "jute":        [3, 4, 5],     # sown Mar–May
+    "pigeonpeas":  [6, 7],        # Kharif
+    "mothbeans":   [7, 8],        # Kharif
+    "mungbean":    [6, 7],        # Kharif
+    "blackgram":   [6, 7],        # Kharif
+    "chickpea":    [10, 11],      # Rabi
+    "kidneybeans": [10, 11],      # Rabi
+    "lentil":      [10, 11],      # Rabi
+    "watermelon":  [1, 2, 3],     # Zaid — summer, sown Jan–Mar
+    "muskmelon":   [1, 2, 3],     # Zaid
+    "banana":      [6, 7, 8],     # perennial — best established in monsoon
+    "mango":       [7, 8],        # perennial — monsoon planting
+    "grapes":      [1, 2],        # perennial — Jan planting/pruning
+    "pomegranate": [7, 8],        # perennial — monsoon
+    "apple":       [1, 2],        # perennial — dormant-season planting (hills)
+    "orange":      [7, 8],        # perennial — monsoon
+    "papaya":      [6, 7],        # perennial — monsoon
+    "coconut":     [6, 7],        # perennial — monsoon
+    "coffee":      [6, 7],        # perennial — monsoon
+}
+
+MONTH_NAMES = ["", "January", "February", "March", "April", "May", "June",
+               "July", "August", "September", "October", "November", "December"]
+
+# Training-data ranges (min, max) per feature — used to flag out-of-distribution
+# inputs so a bad sensor/weather value cannot silently produce a wrong crop.
+FEATURE_RANGES = {
+    "N":           (0, 140),
+    "P":           (5, 145),
+    "K":           (5, 205),
+    "temperature": (8.8, 43.7),
+    "humidity":    (14.0, 100.0),
+    "ph":          (3.5, 10.0),
+    "rainfall":    (20.0, 300.0),
+}
+
 
 def emoji(crop):
     return CROP_EMOJI.get(crop, "🌱")
@@ -59,3 +103,11 @@ def emoji(crop):
 
 def meta(crop):
     return CROPS.get(crop, {})
+
+
+def sow_months(crop):
+    return SOW_MONTHS.get(crop, [])
+
+
+def month_name(m):
+    return MONTH_NAMES[m] if 1 <= m <= 12 else str(m)

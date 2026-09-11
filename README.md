@@ -2,8 +2,9 @@
 
 # 🌱 System using IoT and Crop Recommendation AI
 
-**A soil-to-harvest decision engine — soil-fertility assessment, season-aware crop
-recommendation, profit &amp; input optimization, and an explainable AI account of every call.**
+**A soil-to-harvest decision engine — soil-fertility assessment, crop recommendation with
+sowing-time guidance, real-world cultivation cross-check, real profitability &amp; fertilizer
+optimization, and an explainable AI account of every call.**
 
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.141-009688?logo=fastapi&logoColor=white)
@@ -21,133 +22,140 @@ recommendation, profit &amp; input optimization, and an explainable AI account o
 2. [Key Features](#-key-features)
 3. [System Architecture](#-system-architecture)
 4. [Machine Learning &amp; Results](#-machine-learning--results)
-5. [Dataset](#-dataset)
+5. [Data](#-data)
 6. [Tech Stack](#-tech-stack)
 7. [Project Structure](#-project-structure)
 8. [Getting Started](#-getting-started)
-9. [Configuration (.env)](#-configuration-env)
+9. [Configuration](#-configuration)
 10. [How It Works — the Pipeline](#-how-it-works--the-pipeline)
 11. [API Reference](#-api-reference)
 12. [IoT Module](#-iot-module)
 13. [Deployment](#-deployment-render)
-14. [Research Background &amp; Novelty](#-research-background--novelty)
-15. [Roadmap](#-roadmap--future-scope)
-16. [Team](#-team)
-17. [License](#-license)
+14. [Honest Limitations](#-honest-limitations)
+15. [Research Background](#-research-background)
+16. [Roadmap](#-roadmap--future-scope)
+17. [Team](#-team)
+18. [License](#-license)
 
 ---
 
 ## 🌾 Overview
 
-Choosing the right crop is a high-stakes decision that depends on **soil chemistry**
-(nitrogen, phosphorus, potassium, pH) and **local climate** (temperature, humidity,
-rainfall). Most existing tools stop at classifying soil fertility; they never close the
-loop to a concrete, defensible planting decision.
+Choosing the right crop depends on **soil chemistry** (nitrogen, phosphorus, potassium, pH) and
+**local climate**. This project turns those readings into a concrete, defensible planting plan,
+and — importantly — **grounds every recommendation in real data**:
 
-This project delivers that full loop as an **end-to-end system**:
+> **Soil &amp; climate readings → fertility assessment (Parker's Nutrient Index) → crop recommendation
+> → real-world cultivation cross-check → real profitability, fertilizer, irrigation &amp; rotation
+> advice → SHAP explanation.**
 
-> **Soil &amp; climate readings → fertility assessment → season-aware crop recommendation →
-> yield / profit / fertilizer / irrigation / rotation optimization → SHAP explanation.**
-
-It is **software-sufficient today and IoT-ready by design**: the same JSON endpoint the web
-app uses is the ingestion path for an ESP32 field-sensor node, so real-time sensor data can
-drive the recommendation with no code changes.
+The crop model is trained on the benchmark Kaggle dataset, but the **economics, fertilizer doses,
+and a real-world "is this actually grown here?" cross-check are all built from real Government of
+India data** (see [Honest Limitations](#-honest-limitations)). It is **software-sufficient today
+and IoT-ready by design**: the same JSON endpoint the web app uses is the ingestion path for an
+ESP32 field-sensor node.
 
 ---
 
 ## ✨ Key Features
 
-- **🧪 Soil fertility grading** — N, P, K and pH classified as Low / Medium / High (Neutral /
-  Acidic / Alkaline for pH) with an overall status.
-- **🎯 Season-aware crop recommendation** — predicts the best of **22 crops**, filtered by the
-  current cropping season (Kharif / Rabi / Zaid), with top matches and model confidence.
-- **📊 Model comparison** — benchmarks **ELM vs Random Forest vs XGBoost** (plus baselines); the
-  best model is auto-selected and served.
-- **💰 Profitability optimization** — ranks candidate crops by expected `yield × price − fertilizer cost`.
-- **🧴 Fertilizer advice** — compares sensed vs required NPK and recommends what to add, with an
-  estimated cost.
-- **💧 Irrigation advice** — water requirement &amp; scheduling from moisture + rainfall.
-- **🔄 Crop rotation** — suggests the next-season crop to preserve soil nutrients.
+- **🧪 Soil fertility grading** — N, P, K and pH rated Low / Medium / High, combined into an overall
+  **Parker's Nutrient Index** (standard soil-science method).
+- **🎯 Crop recommendation** — the model recommends the best of **22 crops** from the soil + climate
+  readings you provide, with top matches and confidence.
+- **📅 Planting-month &amp; sowing-time advice** — pick the month you plan to sow; the system says whether
+  it's the right time and, if not, **when to start** (Kharif / Rabi / Zaid aware).
+- **✅ Real-world cross-check** — every recommendation is checked against **real Govt-of-India
+  cultivation data**: *"Rice — major crop in Uttar Pradesh, grown on ~68% of cropland."*
+- **💰 Real profitability** — ranks crops by `real yield × real price − fertilizer cost`, using
+  **real district yields (APY statistics)** and **real MSP 2024-25 prices**.
+- **🧴 Real fertilizer advice** — **ICAR recommended N-P₂O₅-K₂O doses**, soil-test adjusted, converted
+  to actual urea / DAP / MOP quantities with an indicative cost.
+- **💧 Irrigation &amp; 🔄 rotation** — water schedule from crop need + rainfall; nitrogen-fixing
+  rotation suggestion.
 - **🧠 Explainable AI (SHAP)** — shows *why* each crop was recommended, feature by feature.
-- **🌦️ Live weather** — auto-fills temperature / humidity / rainfall from a city via OpenWeather.
+- **🌦️ Seasonal climate (advisory)** — **Open-Meteo** climate normals for your location &amp; month
+  (free, **no API key**) shown as context; it does **not** override your field readings.
+- **📊 Model study** — benchmarks **ELM vs Random Forest vs XGBoost** (+ baselines) with **10-fold
+  cross-validation**.
 - **🔌 IoT loop** — ESP32 firmware + device simulator + live-sensor dashboard mode.
-- **🖥️ Custom web UI** — a responsive single-page dashboard with a light/dark theme (no Streamlit).
+- **🖥️ Custom web UI** — responsive single-page dashboard, light/dark theme (no Streamlit).
 
 ---
 
 ## 🏗 System Architecture
 
 ```
- ┌──────────────── INPUTS ────────────────┐
- │  Soil sensors: N, P, K, pH, moisture    │        Weather API (OpenWeather)
- │  (manual sliders OR ESP32 device)       │        temperature · humidity · rainfall
- └───────────────────┬─────────────────────┘                 │
-                     └───────────────┬─────────────────────────┘
-                                     ▼
-        ╔════════════════ RECOMMENDATION PIPELINE ════════════════╗
-        ║  1. Soil fertility assessment      (fertility.py)        ║
-        ║  2. Crop recommendation            (ELM / RF / XGBoost)  ║
-        ║     season-aware filtering         (season.py)           ║
-        ║  3. Optimization                                          ║
-        ║       • profitability   (yield_profit.py)                ║
-        ║       • fertilizer      (fertilizer.py)                  ║
-        ║       • irrigation      (irrigation.py)                  ║
-        ║       • rotation        (rotation.py)                    ║
-        ║  4. Explainability — SHAP          (explain.py)          ║
-        ╚═══════════════════════════┬══════════════════════════════╝
-                                     ▼
-        FastAPI backend (main.py)  ──►  Web dashboard (static/index.html)
-                 ▲                                   ▲
-     POST /api/ingest                         GET /api/latest
-                 │                                   │
-        ESP32 sensor node  ─────────────────────────┘  (live sensor mode)
-        (iot/esp32_sensor.ino / iot/iot_simulator.py)
+ ┌──────────────── INPUTS (field readings) ────────────────┐
+ │  Soil: N, P, K, pH, moisture  (manual sliders OR ESP32)  │
+ │  Field climate: temperature · humidity · rainfall        │
+ │  Location (city) + planting month                        │
+ └───────────────────────────┬──────────────────────────────┘
+                             ▼
+   ╔═══════════════════ RECOMMENDATION PIPELINE ══════════════════╗
+   ║  1. Soil fertility + Parker's Nutrient Index (fertility.py)   ║
+   ║  2. Crop recommendation      (ELM / RF / XGBoost)            ║
+   ║     sowing-time advice        (season.py)                    ║
+   ║  3. Grounding + optimization                                 ║
+   ║       • real-world cross-check   (cultivation.py + APY data)  ║
+   ║       • real profitability       (yield_profit.py + economics)║
+   ║       • real ICAR fertilizer     (fertilizer.py)             ║
+   ║       • irrigation / rotation    (irrigation.py / rotation.py)║
+   ║  4. Explainability — SHAP        (explain.py)                ║
+   ╚════════════════════════════┬═════════════════════════════════╝
+                             ▼
+   Open-Meteo climate normals ──►  (advisory context only, never a model input)
+                             ▼
+   FastAPI backend (main.py)  ──►  Web dashboard (static/index.html)
+            ▲                                   ▲
+  POST /api/ingest                        GET /api/latest
+            └────── ESP32 sensor node ──────────┘  (live sensor mode)
 ```
 
 ---
 
 ## 🤖 Machine Learning &amp; Results
 
-Seven models are trained and compared on an 80/20 split of the real dataset. **ELM** is the
-method used in the project's reference papers; **Random Forest** and **XGBoost** are the
-stronger modern baselines it is measured against.
+Seven models are trained and compared. **ELM** is the method used in the project's reference
+papers; **Random Forest** and **XGBoost** are the stronger modern baselines. Reported with
+**stratified 10-fold cross-validation** (mean ± std) on the benchmark dataset:
 
-| Model | Test accuracy |
-|-------|:-------------:|
-| **Random Forest** ⭐ (selected) | **99.55%** |
-| Naive Bayes | 99.55% |
-| XGBoost | 98.64% |
-| ELM (reference-paper method) | 98.41% |
-| SVM | 98.41% |
-| Decision Tree | 97.95% |
-| KNN | 97.95% |
+| Model | 10-fold CV accuracy |
+|-------|:-------------------:|
+| **Random Forest** ⭐ (selected) | **99.59% ± 0.38%** |
+| Naive Bayes | 99.50% ± 0.43% |
+| XGBoost | 99.36% ± 0.46% |
+| Decision Tree | 98.95% ± 0.54% |
+| ELM (reference-paper method) | 98.45% ± 0.87% |
+| SVM | 98.32% ± 1.00% |
+| KNN | 97.59% ± 1.32% |
 
-The best model is retrained on all data and saved to `crop_model.pkl`. Training also emits
-report figures: `model_comparison.png`, `confusion_matrix.png`, `feature_importance.png`
-(served in-app at `/charts/*`). **Rainfall, humidity and nitrogen** are consistently the most
-influential features.
+The training set is also enlarged with **SMOTE** (1,760 → 6,600 rows) as a robustness check;
+accuracy holds at ~99% on the real held-out split. The best model is saved to `crop_model.pkl`,
+and figures (`model_comparison.png`, `confusion_matrix.png`, `feature_importance.png`) are served
+at `/charts/*`.
+
+> ⚠️ These numbers are **cross-validation accuracy on the benchmark dataset**, not real-field
+> validation — see [Honest Limitations](#-honest-limitations).
 
 > **ELM** (`elm.py`) is implemented from scratch in NumPy: random hidden weights + a
-> Moore–Penrose pseudo-inverse for the output layer — no back-propagation, near-instant training.
+> Moore–Penrose pseudo-inverse — no back-propagation, near-instant training.
 
 ---
 
-## 📊 Dataset
+## 📊 Data
 
-**Crop Recommendation Dataset** — 2,200 rows, 7 features, **22 crops**.
-
-| Feature | Meaning | Sensor |
-|---------|---------|--------|
-| N, P, K | Soil nitrogen, phosphorus, potassium | NPK soil sensor |
-| temperature | Air temperature (°C) | DHT22 / weather API |
-| humidity | Relative humidity (%) | DHT22 / weather API |
-| ph | Soil pH | pH sensor |
-| rainfall | Rainfall (mm) | Rain gauge / weather API |
-| **label** | **Recommended crop (target)** | — |
-
+**Crop model** — *Crop Recommendation Dataset* (Kaggle): 2,200 rows, 7 features, **22 crops**.
 Source: <https://www.kaggle.com/datasets/atharvaingle/crop-recommendation-dataset>
-The CSV (`Crop_recommendation.csv`) ships with the repo. If it is missing, `train_model.py`
-generates a realistic synthetic fallback so the pipeline always runs.
+
+**Real grounding data** (in `data/real/`, derived from Government of India statistics):
+
+| Layer | Source | Used for |
+|-------|--------|----------|
+| District Area-Production-Yield (345K rows, 707 districts, 1997–2020) | Govt of India APY / data.gov.in | real yields + cultivation cross-check |
+| Minimum Support Prices (MSP) 2024-25 | CACP / Govt of India | real crop prices |
+| ICAR / SAU recommended fertilizer doses | ICAR packages of practice | real fertilizer advice |
+| Monthly climate normals | Open-Meteo Archive API (10-yr) | seasonal climate context |
 
 ---
 
@@ -156,11 +164,11 @@ generates a realistic synthetic fallback so the pipeline always runs.
 | Layer | Technology |
 |-------|-----------|
 | Backend / API | **FastAPI** + Uvicorn |
-| ML | scikit-learn, XGBoost, custom ELM (NumPy) |
+| ML | scikit-learn, XGBoost, custom ELM (NumPy), imbalanced-learn (SMOTE) |
 | Explainability | SHAP |
 | Frontend | Vanilla HTML / CSS / JS (single page, no build step) |
-| Data | pandas, NumPy; Kaggle Crop Recommendation dataset |
-| Weather | OpenWeather Current Weather API |
+| Data | pandas, NumPy; Kaggle dataset + Govt of India APY / MSP / ICAR |
+| Climate | **Open-Meteo** (free, no API key) |
 | IoT | ESP32 (Arduino / C++), REST over WiFi |
 | Deployment | Render (free web service) |
 
@@ -171,34 +179,37 @@ generates a realistic synthetic fallback so the pipeline always runs.
 ```
 .
 ├── main.py               # FastAPI app: serves the UI + JSON API (run this)
-├── train_model.py        # Trains & compares ELM vs RF vs XGBoost; saves model + charts
+├── train_model.py        # Trains & compares models (10-fold CV + SMOTE); saves model + charts
 ├── elm.py                # Extreme Learning Machine (papers' method), NumPy
-├── crops_meta.py         # Crop knowledge base: season, water, price, yield, family
+├── crops_meta.py         # Crop knowledge base: season, sowing months, water, family, feature ranges
 │
-├── fertility.py          # Stage 1 — soil fertility grading
-├── season.py             # Kharif / Rabi / Zaid awareness + crop calendar
-├── yield_profit.py       # Stage 3 — profitability ranking
-├── fertilizer.py         # Stage 3 — fertilizer gap analysis + cost
+├── fertility.py          # Stage 1 — soil rating + Parker's Nutrient Index
+├── season.py             # Kharif/Rabi/Zaid + sowing-time verdict ("right time / when to start")
+├── cultivation.py        # Real-world cross-check (is this crop grown in the state?)
+├── economics.py          # Real yields (APY) + real MSP / market prices
+├── yield_profit.py       # Stage 3 — profitability ranking (real economics)
+├── fertilizer.py         # Stage 3 — real ICAR doses → urea/DAP/MOP + cost
 ├── irrigation.py         # Stage 3 — water requirement & scheduling
 ├── rotation.py           # Stage 3 — next-season rotation suggestion
 ├── explain.py            # Stage 4 — SHAP feature contributions
-├── weather.py            # OpenWeather client (.env key) with graceful fallback
+├── weather.py            # Open-Meteo climate normals (advisory) + offline fallback
 │
 ├── static/index.html     # The web dashboard (UI + client logic)
 ├── crop_model.pkl        # Trained model bundle (created by train_model.py)
 ├── Crop_recommendation.csv
-├── model_comparison.png  · confusion_matrix.png · feature_importance.png
+├── data/
+│   ├── climate_normals.csv          # offline climate fallback
+│   └── real/                        # real Govt-of-India lookups (yields, MSP, cultivation)
+├── model_comparison.png · confusion_matrix.png · feature_importance.png
 │
 ├── iot/
 │   ├── esp32_sensor.ino  # Flashable ESP32 firmware
 │   ├── iot_simulator.py  # Device simulator (demo without hardware)
 │   └── README.md         # Wiring, bill of materials, data flow
 │
-├── app.py                # Optional Streamlit alternative UI
 ├── render.yaml           # Render deployment blueprint
 ├── .python-version       # Pins Python 3.12.6 for the host
 ├── requirements.txt
-├── .env.example          # Copy to .env and add your OpenWeather key
 └── PRODUCT.md            # Product brief (audiences, purpose, principles)
 ```
 
@@ -207,8 +218,7 @@ generates a realistic synthetic fallback so the pipeline always runs.
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Python 3.12 (3.11–3.13 also work locally)
-- `pip`
+- Python 3.12 (3.11–3.13 also work locally) and `pip`
 
 ### 1. Install
 ```bash
@@ -228,49 +238,38 @@ python main.py
 ```
 Open **http://localhost:5000** — interactive API docs are at **http://localhost:5000/docs**.
 
-Enter soil readings (optionally **Use live weather**), then click **Recommend crop**.
+Enter your soil &amp; climate readings, pick your **location** and **planting month**, then click
+**Recommend crop**. The **Climate** button shows your location's seasonal weather as context.
 
 ---
 
-## 🔧 Configuration (.env)
+## 🔧 Configuration
 
-Live weather needs a free OpenWeather key. Copy the example and paste your key:
+**No API key is required** — climate comes from the free, keyless **Open-Meteo** service, with a
+bundled offline fallback (`data/climate_normals.csv`) so the app always works.
 
-```bash
-cp .env.example .env
-```
-```
-OPENWEATHER_API_KEY=your_key_here
-```
-
-- Get a free key at <https://openweathermap.org/api> (the free *Current Weather Data* plan).
-- A brand-new key can take **1–2 hours to activate**; until then the app shows a clear message
-  and the manual weather sliders keep working.
-- `.env` is **git-ignored** — the key is never committed.
-
-Optional IoT auth: set `DEVICE_TOKEN` to require a matching `X-Device-Token` header on `/api/ingest`.
+Optional IoT auth: set `DEVICE_TOKEN` (in a `.env` file or the environment) to require a matching
+`X-Device-Token` header on `/api/ingest`. `.env` is git-ignored.
 
 ---
 
 ## ⚙️ How It Works — the Pipeline
 
-**Stage 1 · Soil fertility** (`fertility.py`) — grades N, P, K and pH against threshold tables
-adapted from the reference papers, and summarizes an overall status.
+**Stage 1 · Soil fertility** (`fertility.py`) — rates N, P, K and pH, and combines them into an
+overall **Parker's Nutrient Index** (Low / Medium / High).
 
-**Stage 2 · Crop recommendation** (`main.py` + `elm.py` + `season.py`) — the trained model
-ranks all 22 crops by probability; results are filtered to the current cropping season, and the
-top match + alternatives are returned with confidence.
+**Stage 2 · Crop recommendation** (`main.py` + model + `season.py`) — the trained model ranks the
+22 crops by probability from the readings you provide; the top match is the recommendation. Season
+is **advisory**: a sowing-time verdict says whether the chosen month is right, and if not, when to
+start and which in-season crops to consider instead.
 
-**Stage 3 · Optimization**
-- **Profitability** (`yield_profit.py`) — `yield × market price − fertilizer cost`, ranked.
-- **Fertilizer** (`fertilizer.py`) — sensed vs required NPK → what to add + estimated ₹/ha.
-- **Irrigation** (`irrigation.py`) — seasonal water need minus rainfall → a watering schedule,
-  refined by soil-moisture.
-- **Rotation** (`rotation.py`) — follow a nutrient-hungry cereal/cash crop with a nitrogen-fixing
-  pulse, and vice-versa.
+**Stage 3 · Grounding &amp; optimization**
+- **Real-world cross-check** (`cultivation.py`) — is this crop actually grown in your state? (real APY data)
+- **Profitability** (`yield_profit.py` + `economics.py`) — `real yield × real price − fertilizer cost`.
+- **Fertilizer** (`fertilizer.py`) — ICAR recommended dose, soil-adjusted → urea / DAP / MOP + ₹/ha.
+- **Irrigation** (`irrigation.py`) and **Rotation** (`rotation.py`).
 
-**Stage 4 · Explainability** (`explain.py`) — SHAP feature contributions show which readings
-pushed the decision toward (or against) the recommended crop.
+**Stage 4 · Explainability** (`explain.py`) — SHAP feature contributions.
 
 ---
 
@@ -282,8 +281,8 @@ Base URL: `http://localhost:5000` (or your deployed URL).
 |--------|----------|---------|
 | `GET`  | `/` | The web dashboard |
 | `GET`  | `/docs` | Interactive API docs (auto-generated) |
-| `GET`  | `/api/meta` | Model name, accuracy, comparison, season, weather-key status |
-| `GET`  | `/api/weather?city=Delhi` | Live temperature / humidity / rainfall for a city |
+| `GET`  | `/api/meta` | Model name, CV accuracy, comparison, season |
+| `GET`  | `/api/weather?city=Delhi&month=7` | Seasonal climate normals for a city &amp; month |
 | `POST` | `/api/predict` | Full recommendation for one set of readings |
 | `POST` | `/api/ingest` | **IoT** — a device pushes a reading; stored + recommendation returned |
 | `GET`  | `/api/latest` | **IoT** — the most recent device reading (for live mode) |
@@ -292,21 +291,23 @@ Base URL: `http://localhost:5000` (or your deployed URL).
 **`POST /api/predict`** request:
 ```json
 { "N": 90, "P": 42, "K": 43, "temperature": 21, "humidity": 82,
-  "ph": 6.5, "rainfall": 200, "soil_moisture": 45 }
+  "ph": 6.5, "rainfall": 200, "soil_moisture": 45, "month": 7, "city": "Lucknow" }
 ```
 **Response (abridged):**
 ```json
 {
-  "season": "Kharif",
-  "fertility": { "items": { "Nitrogen (N)": "Medium", "...": "..." }, "overall": "Moderate — balanced fertility" },
-  "best": { "crop": "rice", "emoji": "🌾", "confidence": 0.96, "season_note": "In season now (Kharif)." },
-  "top": [ { "crop": "rice", "confidence": 0.96, "in_season": true }, "..." ],
-  "profit": [ { "crop": "rice", "yield_q_ha": 40, "price_q": 2200, "fert_cost": 0, "net_profit": 88000 } ],
-  "fertilizer": { "tips": ["..."], "cost": 0 },
-  "irrigation": ["..."],
-  "rotation": { "reason": "...", "picks": [ { "crop": "chickpea", "emoji": "🫘" } ] },
-  "explain": [ { "feature": "rainfall", "value": 0.21 }, "..." ],
-  "model": { "name": "Random Forest", "accuracy": 0.9955 }
+  "season": "Kharif", "month_name": "July",
+  "fertility": { "items": { "Nitrogen (N)": "High", "...": "..." },
+                 "overall": "Rich — good nutrient status (Nutrient Index 2.33)",
+                 "index": { "value": 2.33, "class": "Medium" } },
+  "best": { "crop": "rice", "confidence": 0.96, "in_season": true },
+  "timing": { "ok": true, "message": "Right time to sow rice — July is within June–July." },
+  "grounding": { "grown": true, "message": "Major crop in Uttar Pradesh — ~68% of cropland (rank #1)." },
+  "profit": [ { "crop": "rice", "yield_q_ha": 23.1, "price_q": 2300, "fert_cost": 6479,
+               "net_profit": 46651, "price_source": "MSP 2024-25" } ],
+  "fertilizer": { "tips": ["Recommended dose ... N 75 · P₂O₅ 50 · K₂O 50 kg/ha ...",
+                           "Apply about 121 kg Urea + 109 kg DAP + 83 kg MOP per hectare."], "cost": 6479 },
+  "explain": [ { "feature": "rainfall", "value": 0.21 }, "..." ]
 }
 ```
 
@@ -321,16 +322,10 @@ Full details, wiring and bill of materials: **[`iot/README.md`](iot/README.md)**
 ```bash
 python main.py                              # terminal 1
 python iot/iot_simulator.py                 # terminal 2 — behaves like an ESP32
-# against the deployed app:
-python iot/iot_simulator.py --url https://your-app.onrender.com
+python iot/iot_simulator.py --url https://your-app.onrender.com   # against the deployed app
 ```
-Then open the dashboard and click **Live sensor feed** — readings and the recommendation update
-automatically as the "device" streams.
-
-- **`iot/esp32_sensor.ino`** — flashable firmware: reads NPK (RS485), pH, DHT22, soil-moisture,
-  POSTs to `/api/ingest`.
-- **`iot/iot_simulator.py`** — a device simulator for hardware-free demos.
-- **Endpoints** — `POST /api/ingest` (device → server), `GET /api/latest` (server → dashboard).
+Open the dashboard and click **Live sensor feed** — readings and the recommendation update as the
+"device" streams. Endpoints: `POST /api/ingest` (device → server), `GET /api/latest` (server → dashboard).
 
 ---
 
@@ -338,42 +333,53 @@ automatically as the "device" streams.
 
 The repo includes a Render blueprint (`render.yaml`).
 
-1. Push to GitHub (done).
+1. Push to GitHub.
 2. [render.com](https://render.com) → sign in with GitHub → **New + → Blueprint** → pick the repo → **Apply**.
-3. In the service's **Environment** tab, set **`OPENWEATHER_API_KEY`** (secret, `sync: false`).
-4. When the build finishes, open the `…onrender.com` URL.
+3. Open the `…onrender.com` URL when the build finishes.
 
-Notes: Python is pinned to 3.12.6; the free tier sleeps after ~15 min idle (~30 s cold start);
-every `git push` auto-redeploys.
+No secrets are required (Open-Meteo needs no key). Python is pinned to 3.12.6; the free tier sleeps
+after ~15 min idle (~30 s cold start); every `git push` auto-redeploys.
 
 ---
 
-## 📚 Research Background &amp; Novelty
+## ⚖️ Honest Limitations
 
-The project is grounded in recent literature on ML for soil/agriculture, notably:
+Stated plainly, because they matter for interpreting the results:
 
-- **Sheeba et al. (2022)** and **Suchithra &amp; Pai (2020)** — ELM for soil nutrient / fertility
-  classification (the ELM method and fertility tables here follow these).
+- **The crop model is trained on the benchmark Kaggle dataset**, whose climate columns are
+  idealized per-crop values rather than real ambient weather. So its accuracy figures are
+  **cross-validation on that dataset — not validation on real fields.** Real weather is therefore
+  used only as advisory context, never as a model input.
+- **The real-world cross-check, yields, prices and fertilizer doses are real** (Govt of India APY,
+  MSP 2024-25, ICAR) — this is what grounds the recommendations in reality.
+- Crops not covered by the APY dataset (some fruits, coffee, kidney beans) fall back to
+  **indicative** yields/prices, clearly marked in the UI.
+- Irrigation and rotation are rule-based agronomic heuristics, presented as advice.
+
+---
+
+## 📚 Research Background
+
+Grounded in recent literature on ML for soil/agriculture:
+
+- **Sheeba et al. (2022)**, **Suchithra &amp; Pai (2020)** — ELM for soil fertility classification.
 - **Escorcia-Gutierrez et al. (2022)** — ensemble deep learning for soil nutrients (benchmark).
-- **Abdelmigid et al. (2022)** — Random Forest / MARS for micronutrient prediction (supports the
-  model choice).
-- **Rekha et al. (2018)** — FYM / phosphorus / PSB field study (fertilizer &amp; rotation logic).
+- **Abdelmigid et al. (2022)** — Random Forest for nutrient prediction (supports the model choice).
+- **Shastri et al. (2025)**, **Prity et al. (2024)** — crop recommendation with explainability.
 
-**Research gap addressed:** prior work classifies soil fertility but stops there. This system
-closes the loop — from soil (and live sensor) data to a season-aware, explainable, economically
-optimized crop recommendation, with the model choice justified by an explicit ELM vs RF vs
-XGBoost comparison.
+**Contribution:** an ELM vs RF vs XGBoost study integrated into a decision-support prototype that
+adds Parker's Nutrient Index, sowing-time guidance, a **real-cultivation cross-check**, and **real
+economics/fertilizer** — closing the loop from readings to a grounded, explainable plan.
 
 ---
 
 ## 🗺 Roadmap / Future Scope
 
 - Real ESP32 field deployment with calibrated sensors.
-- Yield prediction as a trained regressor (currently table-driven).
-- Live market-price API for profitability.
-- NDVI / satellite crop-health (OpenWeather Agro API).
-- Multi-language (Hindi / regional) and field-phone UI.
-- Persistent device history &amp; per-device dashboards.
+- A real soil→crop model from Soil Health Card district data (currently gated).
+- Live mandi-price API (Agmarknet) alongside MSP.
+- District-level climate + satellite crop-health (NDVI).
+- Multi-language (Hindi / regional) field-phone UI.
 
 ---
 
@@ -391,5 +397,6 @@ XGBoost comparison.
 ## 📄 License
 
 Released for **academic and educational use** as a final-year project. The Crop Recommendation
-dataset belongs to its original authors on Kaggle. Market prices and yields in `crops_meta.py`
-are indicative figures for demonstration, not live market data.
+dataset belongs to its original authors on Kaggle; the APY / MSP / ICAR data belong to the
+Government of India and respective bodies. Indicative market prices (for non-MSP crops) are
+illustrative, not live market data.

@@ -118,6 +118,19 @@ button{font-family:inherit}
   font:inherit;font-size:14px;background:var(--sand);color:var(--ink);caret-color:var(--sienna);
   transition:border-color .15s}
 .loc input:focus-visible{outline:2px solid var(--ring);outline-offset:1px;border-color:var(--sienna)}
+.loc select{flex:1;min-width:0;padding:12px 13px;border:1px solid var(--line);border-radius:var(--r);
+  font:inherit;font-size:14px;background:var(--sand);color:var(--ink);cursor:pointer;transition:border-color .15s}
+.loc select:focus-visible{outline:2px solid var(--ring);outline-offset:1px;border-color:var(--sienna)}
+.modeseg{display:flex;gap:4px;background:var(--sand);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:20px}
+.seg-btn{flex:1;padding:9px 8px;border:0;background:transparent;border-radius:9px;font:inherit;font-size:12px;font-weight:600;color:var(--muted-fg);cursor:pointer;transition:background .15s,color .15s;letter-spacing:.01em}
+.seg-btn.active{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.seg-btn:focus-visible{outline:2px solid var(--ring);outline-offset:1px}
+#realNote{font-size:12.5px;color:var(--muted-fg);background:var(--sand);border:1px solid var(--line);border-radius:10px;padding:13px 15px;line-height:1.55}
+#realNote b{color:var(--ink)}
+.rfacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:12px}
+.rf{background:var(--sand);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.rf .k{display:block;font-size:11.5px;color:var(--muted-fg);margin-bottom:3px}
+.rf .v{font-size:18px;font-weight:600;color:var(--ink)}
 .wbtn{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;padding:0 16px;cursor:pointer;
   border-radius:var(--r);border:1px solid var(--line);background:var(--paper-2);color:var(--ink);
   font-size:13px;font-weight:600;transition:background .15s,border-color .15s}
@@ -327,7 +340,7 @@ footer .tag{font-family:var(--mono);font-size:11px;letter-spacing:.02em}
     <div class="status" role="group" aria-label="Model status">
       <span class="stat"><span class="k">Season</span><span class="v" id="b-season">—</span></span>
       <span class="stat opt"><span class="k">Model</span><span class="v" id="b-model">—</span></span>
-      <span class="stat"><span class="k">Accuracy</span><span class="v" id="b-acc">—</span></span>
+      <span class="stat" title="10-fold cross-validation on the benchmark dataset — not yet validated on real field data"><span class="k">CV accuracy</span><span class="v" id="b-acc">—</span></span>
     </div>
     <div class="tglw">
       <button class="icon-btn" id="theme" aria-label="Toggle dark mode" title="Toggle theme">
@@ -360,6 +373,10 @@ footer .tag{font-family:var(--mono);font-size:11px;letter-spacing:.02em}
         <span>Sensor readings &amp; climate</span>
       </div>
       <div class="body">
+        <div class="modeseg" role="tablist" aria-label="Recommendation mode">
+          <button class="seg-btn active" id="modeSlider" type="button" role="tab">Soil sliders</button>
+          <button class="seg-btn" id="modeReal" type="button" role="tab">By location · real data</button>
+        </div>
         <div class="glabel">Location &amp; weather</div>
         <div class="loc">
           <label for="city">Field location</label>
@@ -367,11 +384,19 @@ footer .tag{font-family:var(--mono);font-size:11px;letter-spacing:.02em}
             <input type="text" id="city" value="Delhi" placeholder="City name" autocomplete="off"/>
             <button class="wbtn" id="fetchW" type="button">
               <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0 0-9h-1.8A7 7 0 1 0 4 16.7"/></svg>
-              <span class="wtxt">Live</span>
+              <span class="wtxt">Climate</span>
             </button>
           </div>
-          <div class="hint" id="wHint">Live weather fills temperature, humidity and rainfall. Manual entry works too.</div>
+          <div class="hint" id="wHint">Shows your location's seasonal climate for context. The recommendation uses the field readings you set below.</div>
         </div>
+        <div class="loc" style="margin-top:13px">
+          <label for="month">Planting month</label>
+          <div class="row">
+            <select id="month" aria-label="Month you plan to start farming"></select>
+          </div>
+          <div class="hint">The month you plan to start farming — climate, season and sowing advice use this month.</div>
+        </div>
+        <div id="sensorBlock">
         <div class="live" style="margin-top:13px">
           <button class="wbtn" id="liveBtn" type="button" style="width:100%;justify-content:center">
             <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14 0M8.5 16.1a6 6 0 0 1 7 0M2 8.82a15 15 0 0 1 20 0"/><path d="M12 20h.01"/></svg>
@@ -381,6 +406,8 @@ footer .tag{font-family:var(--mono);font-size:11px;letter-spacing:.02em}
         </div>
         <div class="glabel mt">Sensor readings</div>
         <div class="sliders" id="sliders"></div>
+        </div>
+        <div id="realNote" hidden style="margin-top:13px"><b>Real-data model.</b> Enter your location — the app pulls real soil (SoilGrids) &amp; climate (Open-Meteo) for that place and recommends the crops actually suited to it, validated across unseen states. No soil sliders needed.</div>
         <button class="go" id="go" type="button">
           <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           Recommend crop
@@ -433,9 +460,9 @@ document.getElementById("theme").addEventListener("click",()=>{
 
 /* ---------- config ---------- */
 const SLIDERS=[
-  {id:"N",label:"Nitrogen",unit:"kg/ha",min:0,max:140,step:1,val:90,c:"#a3e635"},
-  {id:"P",label:"Phosphorus",unit:"kg/ha",min:0,max:145,step:1,val:42,c:"#e6b93f"},
-  {id:"K",label:"Potassium",unit:"kg/ha",min:0,max:205,step:1,val:43,c:"#f4715b"},
+  {id:"N",label:"Nitrogen",unit:"",min:0,max:140,step:1,val:90,c:"#a3e635"},
+  {id:"P",label:"Phosphorus",unit:"",min:0,max:145,step:1,val:42,c:"#e6b93f"},
+  {id:"K",label:"Potassium",unit:"",min:0,max:205,step:1,val:43,c:"#f4715b"},
   {id:"ph",label:"Soil pH",unit:"",min:3.5,max:9.5,step:0.1,val:6.5,c:"#2dd4bf"},
   {id:"soil_moisture",label:"Moisture",unit:"%",min:0,max:100,step:1,val:45,c:"#38bdf8"},
   {id:"temperature",label:"Temp",unit:"°C",min:5,max:45,step:0.1,val:21,c:"#fb7185"},
@@ -481,23 +508,30 @@ el("reset").addEventListener("click",()=>{
 fetch("/api/meta").then(r=>r.json()).then(m=>{
   if(m.error)return;
   el("b-model").textContent=m.model;
-  el("b-acc").textContent=(m.accuracy*100).toFixed(1)+"%";
+  const cv=m.cv_results&&m.cv_results[m.model];
+  el("b-acc").textContent=cv?cv[0].toFixed(1)+"%":(m.accuracy*100).toFixed(1)+"%";
   el("b-season").textContent=m.season;
   if(!m.weather_key)el("wHint").textContent="No weather key set — manual values are used (your demo still works).";
 }).catch(()=>{});
 
-/* ---------- live weather ---------- */
+/* ---------- planting month ---------- */
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+(function(){const sel=el("month");MONTHS.forEach((m,i)=>{const o=document.createElement("option");o.value=i+1;o.textContent=m;sel.appendChild(o);});
+  sel.value=(new Date().getMonth()+1);
+  // re-pull the month's climate normals whenever the farmer changes the month
+  sel.addEventListener("change",()=>{el("fetchW").click();});})();
+
+/* ---------- seasonal climate CONTEXT (advisory, does not drive the model) ---------- */
 el("fetchW").addEventListener("click",()=>{
   const city=el("city").value.trim()||"Delhi";
+  const month=el("month").value;
   const btn=el("fetchW");const label=btn.querySelector(".wtxt");const txt=label.textContent;
   btn.disabled=true;label.textContent="…";
-  fetch("/api/weather?city="+encodeURIComponent(city)).then(r=>r.json()).then(w=>{
-    if(w.error){toast("Live weather unavailable — using manual values");return;}
-    ["temperature","humidity","rainfall"].forEach(k=>{
-      if(w[k]!==undefined){const s=SLIDERS.find(x=>x.id===k);el(k).value=w[k];el("v_"+k).textContent=w[k];
-        if(s)el(k).style.setProperty("--fill",fillOf(s,parseFloat(w[k])));}});
-    toast("Loaded "+w.source);
-  }).catch(()=>toast("Weather request failed"))
+  fetch("/api/weather?city="+encodeURIComponent(city)+"&month="+month).then(r=>r.json()).then(w=>{
+    if(w.error){el("wHint").textContent="Seasonal climate unavailable — set the field readings below manually.";toast("Climate lookup unavailable");return;}
+    el("wHint").innerHTML=`<b>${MONTHS[month-1]} · ${w.season||""}</b> in ${w.location||city}: ~${w.temperature}°C · ${w.humidity}% RH · ~${w.rainfall} mm rain/month. <span style="color:var(--muted-fg)">Reference only — the recommendation uses the field readings below.</span>`;
+    toast("Seasonal climate loaded · "+(w.source||""));
+  }).catch(()=>toast("Climate request failed"))
   .finally(()=>{btn.disabled=false;label.textContent=txt;});
 });
 
@@ -522,8 +556,6 @@ el("liveBtn").addEventListener("click",()=>{
   tick();livePoll=setInterval(tick,3000);
 });
 
-/* demo: opening /?demo=1 auto-runs a recommendation (handy for screenshots/links) */
-if(new URLSearchParams(location.search).has("demo")){setTimeout(()=>{el("go").click();setTimeout(()=>window.scrollTo(0,0),1400);},500);}
 
 /* ---------- skeleton while predicting ---------- */
 function skeleton(){
@@ -542,18 +574,40 @@ function skeleton(){
 }
 
 /* ---------- predict ---------- */
+/* ---------- mode toggle: benchmark sliders vs real-data by location ---------- */
+let MODE="slider";
+const GOICON='<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+function goLabel(){return GOICON+(MODE==="real"?" Recommend (real data)":" Recommend crop");}
+function setMode(m){MODE=m;
+  el("modeSlider").classList.toggle("active",m==="slider");
+  el("modeReal").classList.toggle("active",m==="real");
+  el("sensorBlock").hidden=(m==="real");
+  el("realNote").hidden=(m!=="real");
+  el("go").innerHTML=goLabel();}
+el("modeSlider").addEventListener("click",()=>setMode("slider"));
+el("modeReal").addEventListener("click",()=>setMode("real"));
+
+function reportError(msg){el("report").setAttribute("aria-busy","false");
+  el("report").innerHTML='<section class="empty"><div class="ic" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></div><h2>Couldn’t complete that</h2><p>'+msg+'</p></section>';toast("Request failed");}
+
 el("go").addEventListener("click",()=>{
+  const btn=el("go");btn.disabled=true;skeleton();
+  if(MODE==="real"){
+    const city=el("city").value.trim()||"Delhi";const month=el("month").value;
+    btn.innerHTML='<span class="spin"></span> Reading real soil &amp; climate…';
+    fetch("/api/recommend_real?city="+encodeURIComponent(city)+"&month="+month)
+      .then(r=>r.json()).then(d=>{if(d.error)throw new Error(d.message||"Real-data request failed");renderReal(d);})
+      .catch(e=>reportError(e.message||"Real-data request failed"))
+      .finally(()=>{btn.disabled=false;btn.innerHTML=goLabel();});
+    return;
+  }
   const p={};SLIDERS.forEach(s=>p[s.id]=getVal(s.id));
-  const btn=el("go");btn.disabled=true;
+  p.month=parseInt(el("month").value);p.city=el("city").value.trim();
   btn.innerHTML='<span class="spin"></span> Analyzing soil…';
-  skeleton();
   fetch("/api/predict",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)})
-    .then(r=>r.json()).then(render).catch(()=>{
-      el("report").setAttribute("aria-busy","false");
-      el("report").innerHTML='<section class="empty"><div class="ic" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></div><h2>Couldn\'t reach the model</h2><p>The recommendation request failed. Check that the server is running, then try again.</p></section>';
-      toast("Recommendation failed");})
-    .finally(()=>{btn.disabled=false;
-      btn.innerHTML='<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg> Recommend crop';});
+    .then(r=>r.json()).then(render)
+    .catch(()=>reportError("The recommendation request failed. Check that the server is running, then try again."))
+    .finally(()=>{btn.disabled=false;btn.innerHTML=goLabel();});
 });
 
 /* ---------- palette helpers ---------- */
@@ -600,7 +654,7 @@ function render(d){
   const rows=d.profit.map(r=>{
     const isBest=tp&&r.crop===tp.crop;
     return `<tr class="${isBest?"best":""}"><td>${r.emoji} ${r.crop}${isBest?'<svg class="crown" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20h14M5 20l-2-9 5 4 4-7 4 7 5-4-2 9"/></svg>':''}</td>
-      <td class="r mono">${r.yield_q_ha}</td><td class="r mono">${inr(r.price_q)}</td>
+      <td class="r mono">${r.yield_q_ha}</td><td class="r mono">${inr(r.price_q)}${r.price_source&&r.price_source.indexOf("indicative")>=0?"*":""}</td>
       <td class="r mono">${inr(r.fert_cost)}</td><td class="r m">${inr(r.net_profit)}</td></tr>`;}).join("");
 
   const ftips=d.fertilizer.tips.map(t=>`<li>${t}</li>`).join("");
@@ -618,9 +672,24 @@ function render(d){
   const bestProfit=(d.profit.find(r=>r.crop===d.best.crop)||tp||{}).net_profit;
   const R=62,C=2*Math.PI*R,off=C*(1-d.best.confidence);
 
-  el("report").innerHTML=`
+  const tm=d.timing||{};
+  const altList=(d.season_alt||[]).map(a=>`${a.emoji} ${a.crop}`).join(", ");
+  const altLine=(d.best&&d.best.in_season===false&&altList)
+    ?`<div style="margin-top:6px;font-weight:500;color:var(--muted-fg)">Prefer a crop to plant this month? Try: ${altList}.</div>`:"";
+  const timingHtml=tm.message?`<div style="margin-top:11px;padding:10px 13px;border-radius:10px;font-size:13px;font-weight:600;line-height:1.45;
+    background:var(--paper-2);border:1px solid ${tm.ok?"var(--good)":"var(--ochre)"};color:${tm.ok?"var(--good)":"var(--ochre)"}">
+    ${tm.message}${altLine}</div>`:"";
+  const g=d.grounding;
+  const groundHtml=g?`<div style="margin-top:9px;font-size:12.5px;line-height:1.45">
+    <b style="color:${g.grown?"var(--good)":"var(--ochre)"}">${g.grown?"✓ Real-world check":"⚠ Real-world check"}:</b>
+    <span style="color:var(--muted-fg)"> ${g.message} <i>(Govt of India cultivation data)</i></span></div>`:"";
+  const warnHtml=(d.warnings&&d.warnings.length)?`<section class="plate reveal" style="border-top:0;padding-top:6px">
+    <div style="padding:11px 14px;border-radius:10px;background:var(--paper-2);border:1px solid var(--bad);color:var(--bad);font-size:12.5px;line-height:1.5">
+      <b>Heads up —</b> ${d.warnings.join(" ")}</div></section>`:"";
+
+  el("report").innerHTML=warnHtml+`
   <section class="plate reveal">
-    <div class="phead"><h2>Recommendation</h2><span class="pmeta">${ICON.cal} season-aware · ${d.season}</span></div>
+    <div class="phead"><h2>Recommendation</h2><span class="pmeta">${ICON.cal} ${d.month_name||""} · ${d.season}</span></div>
     <div class="spec">
       <div class="medallion">
         <svg width="150" height="150" viewBox="0 0 150 150" aria-hidden="true">
@@ -635,6 +704,8 @@ function render(d){
         <div class="rl">Recommended crop</div>
         <div class="cn">${d.best.crop}</div>
         <div class="sn">${d.best.season_note}</div>
+        ${groundHtml}
+        ${timingHtml}
         <div class="tags">
           <span class="tag">${ICON.gauge} Fertility <b>${fertGrade}</b></span>
           <span class="tag">${ICON.coins} ${bestProfit!==undefined?"<b>"+inr(bestProfit)+"</b>/ha":"profit n/a"}</span>
@@ -651,6 +722,7 @@ function render(d){
       <div class="overall">
         <div class="lab">Overall status</div>
         <div class="grade"><span class="pip" style="background:${ovTone}"></span>${fertGrade}</div>
+        ${d.fertility.index?`<div style="font-size:12.5px;color:var(--muted-fg);margin:2px 0 6px"><b style="color:var(--ink)">Nutrient Index ${d.fertility.index.value}</b> · ${d.fertility.index.class} · Parker's method</div>`:""}
         <p>${fertNote}</p>
       </div>
     </div>
@@ -665,6 +737,7 @@ function render(d){
           <thead><tr><th>Crop</th><th class="r">Yield q/ha</th><th class="r">₹/q</th><th class="r">Fert ₹</th><th class="r">Net ₹/ha</th></tr></thead>
           <tbody>${rows}</tbody></table></div>
         ${tp&&tp.crop!==d.best.crop?`<div class="callout">${ICON.coins}<span>Most profitable of the suitable crops: <b>${tp.emoji} ${tp.crop}</b> at ${inr(tp.net_profit)}/ha.</span></div>`:""}
+        <div style="font-size:11.5px;color:var(--muted-fg);margin-top:8px">Yields: real Govt of India APY data · Prices: MSP 2024-25 where mandated, *indicative market otherwise.</div>
       </div>
       <div>
         <div class="subh">${ICON.flask} Fertilizer — ${d.best.crop}</div>
@@ -708,6 +781,39 @@ function render(d){
 
   window.scrollTo({top:el("report").getBoundingClientRect().top+window.scrollY-84,behavior:"smooth"});
 }
+
+/* ---------- render: real-data (by location) model ---------- */
+function renderReal(d){
+  el("report").setAttribute("aria-busy","false");
+  const g=d.grounding, sc=d.soil_climate, ns=d.nearest_survey;
+  const rows=d.top.map(t=>`<div class="mrow"><span class="nm"><span class="em">${t.emoji}</span>${t.crop}</span>
+     <span class="track"><i data-w="${(t.score*100).toFixed(0)}"></i></span>
+     <span class="pc">${(t.score*100).toFixed(0)}%</span></div>`).join("");
+  const facts=[["Temperature",sc.temperature+"°C"],["Humidity",sc.humidity+"%"],["Annual rainfall",sc.rainfall_annual+" mm"],
+    ["Soil pH",sc.soil_pH],["Sand",sc.sand_pct+"%"],["Clay",sc.clay_pct+"%"]];
+  const factHtml=facts.map(f=>`<div class="rf"><span class="k">${f[0]}</span><span class="v mono">${f[1]}</span></div>`).join("");
+  el("report").innerHTML=`
+  <section class="plate reveal">
+    <div class="phead"><h2>Best crops for this location</h2><span class="pmeta">${ICON.cal} ${d.month_name} · ${d.season}</span></div>
+    <div class="rl">Recommended for</div>
+    <div class="cn" style="text-transform:none">${d.location||d.state||"your location"}</div>
+    ${g?`<div style="margin-top:10px;font-size:12.5px;line-height:1.5"><b style="color:${g.grown?"var(--good)":"var(--ochre)"}">${g.grown?"✓ Real-world check":"⚠ Real-world check"}:</b> <span style="color:var(--muted-fg)">${g.message} <i>(Govt of India cultivation data)</i></span></div>`:""}
+    <div class="matches"><div class="mh">Crop suitability — real soil + climate → crops actually grown in this region</div>${rows}</div>
+  </section>
+  <section class="plate reveal">
+    <div class="phead"><h2>What the model used</h2><span class="pmeta">${ICON.spark} real measurements</span></div>
+    <div class="rfacts">${factHtml}</div>
+    <div class="callout" style="margin-top:16px">${ICON.chart}<span>Climate: <b>${d.climate_source}</b> for your exact location. Soil: nearest surveyed district <b>${ns.district}</b> (${ns.km} km, SoilGrids). Model trained on <b>${d.model.n_districts} districts</b>, validated leave-one-state-out.</span></div>
+  </section>`;
+  requestAnimationFrame(()=>{document.querySelectorAll("#report .mrow .track i").forEach(i=>i.style.width=i.dataset.w+"%");});
+  window.scrollTo({top:el("report").getBoundingClientRect().top+window.scrollY-84,behavior:"smooth"});
+}
+
+/* demo: /?demo=1 auto-runs; &real=1 uses the real-data mode; &city=X sets the location */
+(function(){const q=new URLSearchParams(location.search);
+  if(q.get("city"))el("city").value=q.get("city");
+  if(q.has("real"))setMode("real");
+  if(q.has("demo"))setTimeout(()=>{el("go").click();setTimeout(()=>window.scrollTo(0,0),1800);},500);})();
 </script>
 </body>
 </html>

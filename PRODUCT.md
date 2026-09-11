@@ -27,25 +27,26 @@ Not a single-number crop classifier: a **staged decision pipeline** — soil-fer
 ## Operating Context
 
 - Runs as a local **FastAPI web app** (`python main.py` → http://localhost:5000; auto docs at `/docs`), typically shown on a laptop/projector for review and used in a browser.
-- Inputs: NPK, soil pH, soil moisture, temperature, humidity, rainfall — entered manually with sliders or pulled from **live weather** (OpenWeather; API key optional).
+- Inputs: NPK, soil pH, soil moisture, temperature, humidity, rainfall, plus location + planting month — entered manually with sliders (or streamed from the IoT device). Seasonal climate context comes from **Open-Meteo** (free, no API key); it is **advisory only and never a model input**.
 - The same **`/api/predict` JSON endpoint** is the intended future ingestion path for an ESP32 + NPK/pH/DHT22/soil-moisture IoT sensor rig.
 
 ## Capabilities and Constraints
 
 Confirmed capabilities (present in the codebase):
 
-- Soil-fertility grading from NPK + pH, combined into an overall grade.
-- Season-aware, ranked crop recommendation with model confidence and off-season flagging.
-- Optimization outputs: profitability table, fertilizer guidance + estimated cost, irrigation advice, crop-rotation suggestion.
+- Soil-fertility grading from NPK + pH, combined into an overall **Parker's Nutrient Index**.
+- Crop recommendation with model confidence; **sowing-time advice** (right time / when to start) with season as advisory (it never overrides a confident prediction).
+- **Real-world cross-check** — is the recommended crop actually grown in the farmer's state? (real Govt-of-India cultivation data).
+- Optimization outputs built on **real data**: profitability from **real district yields (APY) × real MSP prices**; fertilizer from **real ICAR recommended doses** (soil-adjusted → urea/DAP/MOP + cost); irrigation and crop-rotation advice.
 - SHAP explanation of each recommendation ("why this crop").
-- Model-comparison training artifacts (ELM vs Random Forest vs XGBoost; Random Forest selected, ~99.6% on the dataset) surfaced as insight charts.
+- Model-comparison training artifacts (ELM vs Random Forest vs XGBoost; Random Forest selected, **99.6% ± 0.4% 10-fold CV on the benchmark dataset**) surfaced as insight charts.
 
 Durable commitment (explicitly confirmed): **software-only today, IoT-ready by design** — the system runs with no hardware, and `/api/predict` is the documented future ESP32/IoT path.
 
 Technical constraints:
 
 - Implementation is a FastAPI JSON API plus a **single vanilla HTML/CSS/JS page** with no build step; Python 3.13, scikit-learn, xgboost, shap.
-- Weather is optional — the app must work with manual values when no API key is set.
+- Climate needs **no API key** (Open-Meteo) and has an offline fallback table — the app always works, online or offline, and is advisory regardless.
 
 ## Brand Commitments
 
@@ -55,9 +56,10 @@ Technical constraints:
 
 ## Evidence on Hand
 
-- Dataset: Kaggle `Crop_recommendation.csv` (2200 rows, 22 crops) in the repo.
+- Crop model dataset: Kaggle `Crop_recommendation.csv` (2200 rows, 22 crops) in the repo — its climate columns are idealized per-crop values, so accuracy is CV-on-dataset, **not real-field validated** (stated honestly in the UI and README).
+- Real grounding data in `data/real/`: Govt of India district Area-Production-Yield (345K rows, real yields + cultivation shares), MSP 2024-25 prices, ICAR fertilizer doses — these make the economics, fertilizer and cross-check genuinely real.
 - Trained model bundle `crop_model.pkl`; training charts `model_comparison.png`, `feature_importance.png`, `confusion_matrix.png` (served at `/charts/*`).
-- No testimonials, external/real users, deployment claims, or benchmarks beyond this dataset exist — future work must not fabricate them.
+- No testimonials, external/real users, or real-field deployment results exist — future work must not fabricate them.
 
 ## Product Principles
 

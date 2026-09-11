@@ -25,7 +25,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
@@ -38,7 +38,14 @@ from xgboost import XGBClassifier
 from elm import ELMClassifier
 from crops_meta import FEATURES
 
+try:
+    from imblearn.over_sampling import SMOTE
+    HAVE_SMOTE = True
+except ImportError:
+    HAVE_SMOTE = False
+
 CSV_PATH = "Crop_recommendation.csv"
+AUG_PER_CLASS = 300      # SMOTE target samples per crop for the expanded dataset
 
 # per-crop agronomic centres for the synthetic fallback only
 CROP_PROFILES = {
@@ -79,6 +86,42 @@ def load_data():
         return df, "real"
     print(f"[data] {CSV_PATH} not found -> using SYNTHETIC data.")
     return make_synthetic(), "synthetic"
+
+
+def cross_validate(make_models, X, y, scaled_models, k=10):
+    """Stratified k-fold CV, done manually so the custom ELM works and so the
+    scaler is fit inside each fold (no leakage). Returns {name: (mean%, std%)}."""
+    skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
+    Xv, yv = X.values, y.values
+    accs = {name: [] for name in make_models()}
+    for tr, te in skf.split(Xv, yv):
+        Xtr, Xte, ytr, yte = Xv[tr], Xv[te], yv[tr], yv[te]
+        sc = StandardScaler().fit(Xtr)
+        Xtr_s, Xte_s = sc.transform(Xtr), sc.transform(Xte)
+        le = LabelEncoder().fit(ytr)
+        for name, model in make_models().items():
+            use_scaled = name in scaled_models
+            a, b = (Xtr_s, Xte_s) if use_scaled else (Xtr, Xte)
+            if name == "XGBoost":
+                model.fit(a, le.transform(ytr))
+                pred = le.inverse_transform(model.predict(b))
+            else:
+                model.fit(a, ytr)
+                pred = model.predict(b)
+            accs[name].append(accuracy_score(yte, pred))
+    return {n: (float(np.mean(v) * 100), float(np.std(v) * 100)) for n, v in accs.items()}
+
+
+def smote_expand(X, y, per_class, seed=42):
+    """Enlarge the dataset with SMOTE synthetic samples (the established, citable
+    way to grow this crop dataset — cf. Zenodo 10.5281/zenodo.19709807). Each
+    crop is oversampled up to `per_class`; classes already larger are kept."""
+    counts = pd.Series(y).value_counts()
+    strategy = {c: max(per_class, int(counts[c])) for c in counts.index}
+    k = max(1, min(5, int(counts.min()) - 1))
+    Xa, ya = SMOTE(sampling_strategy=strategy, random_state=seed,
+                   k_neighbors=k).fit_resample(X, y)
+    return Xa, ya
 
 
 def main():
@@ -128,8 +171,48 @@ def main():
         results[name] = acc
         print(f"  {name:15s}: {acc*100:.2f}%")
 
+    # ---- stratified 10-fold cross-validation (robust estimate on small data) ----
+    print("\n=== 10-fold cross-validation (mean ± std accuracy) ===")
+    cv_results = cross_validate(make_models, X, y, scaled_models, k=10)
+    for name in results:
+        m, s = cv_results[name]
+        print(f"  {name:15s}: {m:.2f}% ± {s:.2f}%")
+
+    # ---- SMOTE augmentation: enlarge TRAIN only, evaluate on real held-out test ----
+    aug_results = {}
+    aug_train_size = None
+    if HAVE_SMOTE:
+        Xtr_aug, ytr_aug = smote_expand(X_train, y_train, per_class=AUG_PER_CLASS)
+        aug_train_size = int(len(Xtr_aug))
+        print(f"\n=== SMOTE-augmented training ({len(X_train)} -> {aug_train_size} rows), "
+              f"tested on REAL held-out data ===")
+        sc_aug = StandardScaler().fit(Xtr_aug)
+        le_aug = LabelEncoder().fit(ytr_aug)
+        for name, model in make_models().items():
+            use_scaled = name in scaled_models
+            a = sc_aug.transform(Xtr_aug) if use_scaled else Xtr_aug
+            b = sc_aug.transform(X_test) if use_scaled else X_test
+            if name == "XGBoost":
+                model.fit(a, le_aug.transform(ytr_aug))
+                preds = le_aug.inverse_transform(model.predict(b))
+            else:
+                model.fit(a, ytr_aug)
+                preds = model.predict(b)
+            aug_results[name] = accuracy_score(y_test, preds)
+            print(f"  {name:15s}: {aug_results[name]*100:.2f}%")
+        # save the full expanded dataset for the record / report
+        Xful, yful = smote_expand(X, y, per_class=AUG_PER_CLASS)
+        aug_df = pd.DataFrame(Xful, columns=FEATURES); aug_df["label"] = list(yful)
+        os.makedirs("data", exist_ok=True)
+        aug_df.to_csv(os.path.join("data", "crop_recommendation_smote.csv"), index=False)
+        print(f"[save] data/crop_recommendation_smote.csv ({len(aug_df)} rows)")
+    else:
+        print("\n[skip] SMOTE augmentation (install imbalanced-learn to enable).")
+
     best_name = max(results, key=results.get)
-    print(f"\n[best] {best_name} ({results[best_name]*100:.2f}%)")
+    print(f"\n[best] {best_name} "
+          f"(holdout {results[best_name]*100:.2f}%, "
+          f"CV {cv_results[best_name][0]:.2f}% ± {cv_results[best_name][1]:.2f}%)")
 
     # retrain best on ALL data for deployment
     best_uses_scaled = best_name in scaled_models
@@ -158,6 +241,11 @@ def main():
             "accuracy": results[best_name],
             "data_source": source,
             "all_results": results,
+            "cv_results": cv_results,          # {name: (mean%, std%)} from 10-fold CV
+            "cv_folds": 10,
+            "n_samples": int(len(df)),
+            "aug_results": aug_results,        # accuracy on real test, SMOTE-augmented training
+            "aug_train_size": aug_train_size,
             "crop_means": crop_means,
             "X_sample": X.sample(min(200, len(X)), random_state=1).values,  # SHAP background
         },
@@ -168,14 +256,16 @@ def main():
     # ---- charts ----
     plt.figure(figsize=(8.5, 4.5))
     names = list(results.keys())
-    accs = [results[n] * 100 for n in names]
+    means = [cv_results[n][0] for n in names]
+    stds = [cv_results[n][1] for n in names]
     colors = ["#2e7d32" if n == best_name else "#90a4ae" for n in names]
-    bars = plt.bar(names, accs, color=colors)
+    bars = plt.bar(names, means, yerr=stds, capsize=4, color=colors,
+                   error_kw={"ecolor": "#37474f", "elinewidth": 1})
     plt.ylabel("Accuracy (%)"); plt.ylim(0, 105)
-    plt.title("Model Comparison — ELM vs RF vs XGBoost (and baselines)")
+    plt.title("Model Comparison — 10-fold CV accuracy (mean ± std)")
     plt.xticks(rotation=20, ha="right")
-    for b, a in zip(bars, accs):
-        plt.text(b.get_x() + b.get_width()/2, a + 1, f"{a:.1f}", ha="center", fontsize=8)
+    for b, m in zip(bars, means):
+        plt.text(b.get_x() + b.get_width()/2, m + 2.5, f"{m:.1f}", ha="center", fontsize=8)
     plt.tight_layout(); plt.savefig("model_comparison.png", dpi=130); plt.close()
 
     # confusion matrix of best model
@@ -207,7 +297,7 @@ def main():
         plt.tight_layout(); plt.savefig("feature_importance.png", dpi=130); plt.close()
 
     print("[save] charts: model_comparison.png, confusion_matrix.png, feature_importance.png")
-    print("\nDone. Run the app with:  python -m streamlit run app.py")
+    print("\nDone. Run the app with:  python main.py   (then open http://localhost:5000)")
 
 
 if __name__ == "__main__":

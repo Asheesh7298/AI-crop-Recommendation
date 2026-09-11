@@ -1,40 +1,45 @@
 """
-Yield + profitability ranking.
+Yield + profitability ranking (real yields + real MSP prices).
 
-For each candidate crop we take an indicative yield (quintal/ha) and market
-price (₹/quintal) from crops_meta, subtract the fertilizer cost, and rank
-crops by expected net profit. This turns 'most suitable' into 'most
-profitable' - the optimization the user asked for.
+For each *suitable* candidate crop (the model's confident matches) we take the
+REAL median yield (quintal/ha, Govt of India APY statistics) and the REAL price
+(MSP where mandated, else an indicative market price), subtract the fertilizer
+cost, and rank by net profit. Crops the model is not actually suggesting
+(confidence below a floor) are excluded so a low-confidence high-value crop can
+never "win".
 """
+from economics import yield_q_ha, price_q
+from crops_meta import emoji
 
-from crops_meta import CROPS, emoji
-
-
-def gross_income(crop):
-    m = CROPS.get(crop, {})
-    return m.get("yield", 0) * m.get("price", 0)
+MIN_CONF = 0.05   # ignore crops the model gives < 5% confidence
 
 
-def rank_by_profit(candidate_crops, fert_cost_by_crop=None):
+def rank_by_profit(candidates, fert_cost_by_crop=None):
     """
-    candidate_crops: list of crop names (e.g. model's top-N)
+    candidates: list of (crop, confidence) tuples (model's ranked matches)
     fert_cost_by_crop: optional {crop: ₹ fertilizer cost} to subtract
-    Returns list of dicts sorted by net profit desc.
+    Returns rows sorted by net profit desc, each flagged with data sources.
     """
     fert_cost_by_crop = fert_cost_by_crop or {}
     rows = []
-    for crop in candidate_crops:
-        m = CROPS.get(crop, {})
-        income = gross_income(crop)
+    for crop, conf in candidates:
+        if conf < MIN_CONF:
+            continue
+        y, y_src = yield_q_ha(crop)
+        price, p_src = price_q(crop)
+        gross = y * price
         cost = fert_cost_by_crop.get(crop, 0)
         rows.append({
             "crop": crop,
             "emoji": emoji(crop),
-            "yield_q_ha": m.get("yield", 0),
-            "price_q": m.get("price", 0),
-            "gross": income,
+            "confidence": round(conf, 4),
+            "yield_q_ha": y,
+            "price_q": price,
+            "gross": round(gross),
             "fert_cost": cost,
-            "net_profit": income - cost,
+            "net_profit": round(gross - cost),
+            "yield_source": y_src,
+            "price_source": p_src,
         })
     rows.sort(key=lambda r: r["net_profit"], reverse=True)
     return rows

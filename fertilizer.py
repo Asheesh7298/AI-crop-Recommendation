@@ -1,60 +1,70 @@
 """
-Stage 3 - Fertilizer advice.
+Stage 3 - Fertilizer advice (real ICAR recommended doses, soil-test adjusted).
 
-Compares the sensed N/P/K against the average N/P/K the recommended crop
-grows in (learned from the dataset, stored in crop_model.pkl as
-'crop_means'), then suggests which nutrient to add or reduce.
-
-Agronomy logic (which fertilizer supplies which nutrient, role of FYM /
-PSB) follows Rekha et al. 2018 (green-gram FYM/P/PSB study).
+Uses each crop's standard recommended dose of N-P2O5-K2O (kg/ha) from ICAR /
+State Agricultural University packages of practices, adjusts it by the soil-test
+fertility class (Low -> apply more, High -> apply less, per soil-test-based
+recommendation), and converts the nutrients into actual fertilizer products
+(urea, DAP, MOP) with an indicative cost.
 """
+import fertility
 
-# nutrient -> (common straight fertilizer, note)
-_SOURCES = {
-    "N": ("Urea", "nitrogen for leafy/vegetative growth"),
-    "P": ("DAP / Single Super Phosphate", "phosphorus for root & flowering; PSB improves uptake"),
-    "K": ("Muriate of Potash (MOP)", "potassium for grain filling & disease resistance"),
+# Standard recommended dose (kg/ha) as N : P2O5 : K2O  (ICAR / SAU packages).
+RECO_DOSE = {
+    "rice": (100, 50, 50), "maize": (120, 60, 40), "chickpea": (20, 50, 20),
+    "pigeonpeas": (25, 50, 25), "mothbeans": (15, 40, 20), "mungbean": (20, 40, 20),
+    "blackgram": (20, 40, 20), "lentil": (20, 40, 20), "banana": (200, 60, 200),
+    "coconut": (50, 30, 120), "cotton": (100, 50, 50), "jute": (60, 30, 30),
+    "pomegranate": (50, 25, 50), "mango": (100, 50, 100), "grapes": (100, 50, 100),
+    "watermelon": (100, 50, 50), "muskmelon": (100, 50, 50), "apple": (70, 35, 70),
+    "orange": (60, 30, 60), "papaya": (200, 100, 200), "coffee": (40, 30, 40),
+    "kidneybeans": (20, 40, 20),
 }
+_DEFAULT_DOSE = (80, 40, 40)
 
-# how far off before we flag it (dataset units)
-_TOLERANCE = 12
+# soil-test class -> dose multiplier (apply more when Low, less when High)
+_ADJ = {"Low": 1.25, "Medium": 1.0, "High": 0.75}
+
+# fertilizer nutrient contents and indicative subsidised price (₹/kg)
+UREA_N, DAP_N, DAP_P, MOP_K = 0.46, 0.18, 0.46, 0.60
+PRICE = {"urea": 5.9, "dap": 27.0, "mop": 34.0}
 
 
-def advise(crop, n, p, k, crop_means):
-    """Return a list of advice strings comparing sensed vs required NPK."""
-    target = crop_means.get(crop)
-    if not target:
-        return ["No nutrient profile available for this crop."]
+def _adjusted_dose(crop, n, p, k):
+    base = RECO_DOSE.get(crop, _DEFAULT_DOSE)
+    rep = fertility.assess(n, p, k, 7.0)   # pH not needed for N/P/K class
+    classes = (rep["Nitrogen (N)"], rep["Phosphorus (P)"], rep["Potassium (K)"])
+    return tuple(round(d * _ADJ.get(cls, 1.0)) for d, cls in zip(base, classes)), classes
 
-    sensed = {"N": n, "P": p, "K": k}
-    tips = []
-    for nut in ("N", "P", "K"):
-        need = target[nut]
-        have = sensed[nut]
-        diff = need - have
-        src, role = _SOURCES[nut]
-        if diff > _TOLERANCE:
-            tips.append(f"⬆ Add {nut}: ~{diff:.0f} units short. Apply {src} ({role}).")
-        elif diff < -_TOLERANCE:
-            tips.append(f"⬇ {nut} is high (~{abs(diff):.0f} above need). Reduce {nut} input to save cost.")
-        else:
-            tips.append(f"✅ {nut} is adequate for {crop}.")
 
-    tips.append("🌱 Add well-rotted FYM (~10 t/ha) to improve nutrient balance and soil health (Rekha et al. 2018).")
+def _products(N, P2O5, K2O):
+    """Convert an N-P2O5-K2O dose (kg/ha) into urea/DAP/MOP quantities (kg/ha)."""
+    dap = P2O5 / DAP_P if P2O5 > 0 else 0.0          # DAP supplies the phosphorus
+    n_from_dap = dap * DAP_N
+    urea = max(0.0, (N - n_from_dap)) / UREA_N       # urea tops up remaining N
+    mop = K2O / MOP_K if K2O > 0 else 0.0            # MOP supplies the potassium
+    return {"urea": round(urea), "dap": round(dap), "mop": round(mop)}
+
+
+def advise(crop, n, p, k):
+    """Return real, soil-adjusted fertilizer advice for the recommended crop."""
+    (N, P2O5, K2O), classes = _adjusted_dose(crop, n, p, k)
+    prod = _products(N, P2O5, K2O)
+    tips = [
+        f"Recommended dose for {crop} (soil-test adjusted): "
+        f"N {N} · P₂O₅ {P2O5} · K₂O {K2O} kg/ha "
+        f"(soil rated N-{classes[0]}, P-{classes[1]}, K-{classes[2]}).",
+        f"Apply about {prod['urea']} kg Urea + {prod['dap']} kg DAP + {prod['mop']} kg MOP per hectare.",
+        "Split N: half at sowing/planting, the rest as top-dressing. "
+        "Add well-rotted FYM (~10 t/ha) to build soil health (ICAR package of practices).",
+    ]
     return tips
 
 
-def estimated_cost(crop, n, p, k, crop_means):
-    """Very rough ₹/ha estimate of the extra fertilizer to buy (indicative)."""
-    target = crop_means.get(crop)
-    if not target:
-        return 0
-    # indicative ₹ per 'unit' shortfall per nutrient
-    unit_cost = {"N": 8, "P": 12, "K": 10}
-    cost = 0
-    sensed = {"N": n, "P": p, "K": k}
-    for nut in ("N", "P", "K"):
-        diff = target[nut] - sensed[nut]
-        if diff > _TOLERANCE:
-            cost += diff * unit_cost[nut]
+def estimated_cost(crop, n, p, k):
+    """Indicative ₹/ha cost of the recommended fertilizer (real subsidised rates)."""
+    (N, P2O5, K2O), _ = _adjusted_dose(crop, n, p, k)
+    prod = _products(N, P2O5, K2O)
+    cost = (prod["urea"] * PRICE["urea"] + prod["dap"] * PRICE["dap"]
+            + prod["mop"] * PRICE["mop"])
     return round(cost)

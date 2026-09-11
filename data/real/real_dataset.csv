@@ -1,0 +1,161 @@
+district,state,lat,lon,crops,soil_cec,soil_clay,soil_nitrogen,soil_phh2o,soil_sand,soil_soc,clim_temp,clim_rainfall,clim_humidity
+NORTH AND MIDDLE ANDAMAN,Andaman and Nicobar,12.92,92.9,blackgram|mungbean|rice,236,341,376,57,379,405,27.0,2203.0,81.2
+VIZIANAGARAM,Andhra Pradesh,18.2,83.4,blackgram|cotton|maize|mungbean|rice|sesamum|sugarcane,222,335,170,63,382,225,27.1,1663.0,75.3
+KURNOOL,Andhra Pradesh,15.8,77.97,chickpea|cotton|groundnut|pigeonpeas|rice|sorghum,365,425,156,75,286,447,28.0,801.0,59.1
+PRAKASAM,Andhra Pradesh,15.33,79.55,blackgram|chickpea|cotton|pigeonpeas|rice,284,293,197,71,377,382,28.2,1092.0,67.8
+GUNTUR,Andhra Pradesh,16.3,80.45,blackgram|cotton|maize|rice,233,287,145,70,397,179,28.4,1297.0,71.0
+SRIKAKULAM,Andhra Pradesh,18.42,84.02,blackgram|maize|mungbean|rice,186,293,208,65,401,251,27.0,1727.0,77.4
+ANANTAPUR,Andhra Pradesh,14.7,77.6,chickpea|groundnut|pigeonpeas,204,327,138,72,405,190,27.8,849.0,59.1
+CHITTOOR,Andhra Pradesh,14.47,78.82,groundnut|rice|sugarcane,238,326,135,69,410,260,28.4,826.0,62.0
+KRISHNA,Andhra Pradesh,16.28,81.22,blackgram|cotton|rice,247,314,196,65,362,244,27.8,1458.0,77.0
+KURUNG KUMEY,Arunachal Pradesh,27.9,93.35,maize|potato|rice|sugarcane,183,266,367,54,354,462,19.6,3896.0,85.3
+TAWANG,Arunachal Pradesh,27.58,91.85,maize|potato|rice|wheat,322,160,373,69,499,742,10.5,1598.0,80.3
+CHANGLANG,Arunachal Pradesh,27.12,95.73,maize|mustard|rice,187,304,395,52,417,301,21.6,2792.0,81.3
+LOHIT,Arunachal Pradesh,28.0,96.5,maize|mustard|rice,202,190,802,54,477,931,12.1,3496.0,84.0
+LOWER DIBANG VALLEY,Arunachal Pradesh,28.13,95.83,maize|mustard|rice,212,260,745,55,369,588,22.5,3407.0,71.9
+NAMSAI,Arunachal Pradesh,27.67,95.87,maize|mustard|rice,184,315,427,54,395,311,22.9,3431.0,83.4
+SIANG,Arunachal Pradesh,28.2,94.98,maize|mustard|rice,217,308,517,53,323,766,20.5,3695.0,81.0
+ANJAW,Arunachal Pradesh,27.92,96.33,maize|rice,211,188,704,54,435,848,16.3,5019.0,78.6
+DIMA HASAO,Assam,25.18,93.03,maize|mustard|potato|rice|sugarcane,163,300,232,52,321,269,23.4,1277.0,76.8
+DHEMAJI,Assam,27.47,94.55,mustard|potato|rice,216,289,774,50,448,522,23.2,3853.0,81.3
+DHUBRI,Assam,26.03,89.97,jute|mustard|rice,203,280,225,55,462,267,24.7,2964.0,80.6
+JORHAT,Assam,26.75,94.22,blackgram|mustard|rice,166,275,374,55,407,258,23.5,3531.0,84.0
+KARBI ANGLONG,Assam,26.18,93.57,maize|mustard|rice,207,328,526,52,318,413,21.2,2757.0,80.1
+LAKHIMPUR,Assam,27.22,94.1,mustard|potato|rice,206,281,741,52,447,852,23.7,2938.0,78.9
+UDALGURI,Assam,26.73,92.08,mustard|potato|rice,219,345,1054,52,228,470,23.8,3134.0,76.2
+BAKSA,Assam,26.57,91.42,mustard|rice,216,263,262,51,414,516,23.8,3796.0,79.8
+LAKHISARAI,Bihar,25.17,86.08,chickpea|lentil|maize|rice|wheat,179,289,162,71,271,226,25.3,1272.0,70.6
+SUPAUL,Bihar,25.92,86.25,jute|maize|mungbean|rice|wheat,176,271,133,69,294,182,24.9,1402.0,73.7
+ARARIA,Bihar,26.12,87.47,jute|maize|rice|wheat,197,207,170,63,396,195,24.4,1833.0,76.3
+BEGUSARAI,Bihar,25.42,86.13,maize|mustard|rice|wheat,157,284,177,70,306,207,25.3,1252.0,71.4
+DARBHANGA,Bihar,26.0,86.0,maize|mungbean|rice|wheat,156,235,146,69,302,205,24.9,1339.0,72.8
+KATIHAR,Bihar,25.55,87.57,jute|maize|rice|wheat,146,251,156,67,301,203,24.8,1428.0,75.2
+KISHANGANJ,Bihar,25.67,86.93,jute|mungbean|rice|wheat,158,260,187,68,328,215,24.7,1526.0,74.8
+MADHEPURA,Bihar,25.9,86.77,maize|mungbean|rice|wheat,184,282,158,67,307,193,24.6,1481.0,74.8
+BEMETARA,Chhattisgarh,21.7,81.53,chickpea|rice|soybean|wheat,351,385,175,75,201,124,26.2,1479.0,62.1
+KABIRDHAM,Chhattisgarh,22.02,81.25,chickpea|rice|soybean,368,398,233,64,169,218,25.9,1493.0,61.4
+RAJNANDGAON,Chhattisgarh,21.1,81.03,chickpea|rice|soybean,255,402,178,72,263,151,25.8,1429.0,64.1
+DURG,Chhattisgarh,21.18,81.28,chickpea|rice,354,418,165,73,192,132,26.0,1488.0,64.4
+JASHPUR,Chhattisgarh,22.9,84.15,blackgram|rice,374,387,179,66,243,261,22.8,1600.0,65.0
+KANKER,Chhattisgarh,20.27,81.48,maize|rice,316,377,179,67,387,143,25.8,1429.0,62.2
+DADRA AND NAGAR HAVELI,Dadra and Nagar Haveli and Daman and Diu,20.27,73.02,blackgram|fingermillet|pigeonpeas|rice,264,376,182,68,321,174,26.7,1876.0,67.8
+NORTH GOA,Goa,15.48,73.82,groundnut|rice,222,321,232,62,365,302,26.9,3104.0,77.6
+TAPI,Gujarat,21.12,73.4,cotton|groundnut|pigeonpeas|rice|sorghum|soybean|sugarcane,291,374,151,68,340,151,26.9,1525.0,64.6
+ARAVALLI,Gujarat,24.02,73.03,cotton|groundnut|maize|potato|soybean|wheat,291,210,173,74,405,91,26.0,1091.0,56.4
+BANAS KANTHA,Gujarat,24.17,72.42,cotton|groundnut|mustard|pearlmillet|potato|wheat,270,201,196,74,410,114,26.5,979.0,54.1
+NARMADA,Gujarat,21.87,73.5,cotton|maize|pigeonpeas|rice|sorghum|sugarcane,328,364,160,71,296,106,27.1,1199.0,62.3
+PATAN,Gujarat,23.83,72.12,blackgram|chickpea|cotton|mustard|pearlmillet|wheat,287,191,153,74,421,95,27.0,852.0,55.6
+MAHISAGAR,Gujarat,23.12,73.62,cotton|maize|pearlmillet|rice|wheat,304,218,160,72,387,103,26.7,1127.0,58.9
+PORBANDAR,Gujarat,21.62,69.6,chickpea|cotton|groundnut|sorghum|wheat,231,243,131,69,392,123,26.7,1114.0,66.3
+ROHTAK,Haryana,28.53,76.33,cotton|mustard|pearlmillet|rice|sorghum|wheat,159,223,129,81,436,128,24.3,601.0,61.3
+BHIWANI,Haryana,28.78,76.13,chickpea|cotton|mustard|pearlmillet|wheat,144,209,130,83,442,104,24.4,540.0,61.4
+JHAJJAR,Haryana,28.6,76.65,mustard|pearlmillet|rice|wheat,126,258,100,84,389,116,24.2,688.0,63.8
+PALWAL,Haryana,28.15,77.33,cotton|pearlmillet|rice|wheat,141,263,137,85,421,107,24.4,872.0,64.3
+SIRSA,Haryana,29.53,75.02,cotton|mustard|rice|wheat,134,238,94,78,613,90,24.8,417.0,59.2
+AMBALA,Haryana,30.42,77.17,rice|sugarcane|wheat,253,225,378,60,366,486,22.6,917.0,67.5
+FARIDABAD,Haryana,28.4,77.32,pearlmillet|rice|wheat,140,247,123,85,413,100,24.7,838.0,61.9
+FATEHABAD,Haryana,29.32,75.27,cotton|rice|wheat,146,217,141,79,477,98,24.6,425.0,60.2
+KINNAUR,Himachal Pradesh,31.58,78.42,barley|maize|potato|wheat,335,175,443,69,479,542,12.1,678.0,54.9
+SHIMLA,Himachal Pradesh,31.1,77.17,barley|maize|potato|wheat,249,271,483,59,361,535,13.2,1281.0,68.1
+CHAMBA,Himachal Pradesh,32.55,76.12,barley|maize|wheat,255,292,722,57,433,784,18.5,1638.0,63.0
+KANGRA,Himachal Pradesh,32.22,76.32,maize|rice|wheat,222,303,503,63,406,763,17.7,1701.0,62.1
+SIRMAUR,Himachal Pradesh,30.63,77.43,maize|rice|wheat,234,224,565,58,481,844,21.1,1184.0,64.6
+SOLAN,Himachal Pradesh,30.9,77.08,maize|rice|wheat,221,284,481,59,361,596,13.9,1163.0,69.5
+UNA,Himachal Pradesh,31.47,76.27,maize|wheat,245,258,448,62,409,421,22.0,793.0,68.2
+KISHTWAR,Jammu and Kashmir,33.3,75.77,barley|maize|rice|wheat,220,172,555,64,412,619,14.5,1770.0,53.6
+SAMBA,Jammu and Kashmir,32.55,75.12,maize|pearlmillet|rice|wheat,217,276,479,61,389,475,22.9,1094.0,61.3
+SHOPIAN,Jammu and Kashmir,33.72,74.83,maize|mustard|potato|rice,209,276,398,70,163,349,10.4,1735.0,62.3
+ANANTNAG,Jammu and Kashmir,33.73,75.15,maize|mustard|rice,221,245,501,62,285,458,12.5,1083.0,66.7
+BADGAM,Jammu and Kashmir,34.02,74.77,maize|mustard|rice,227,310,463,69,238,411,11.9,1283.0,67.4
+BANDIPORA,Jammu and Kashmir,34.42,74.65,maize|mustard|rice,260,252,559,62,298,907,11.8,1328.0,57.9
+DODA,Jammu and Kashmir,33.13,75.53,barley|maize|wheat,280,184,592,62,445,826,17.2,1161.0,57.0
+GANDERBAL,Jammu and Kashmir,34.23,74.78,maize|mustard|rice,211,238,616,60,296,839,12.4,2320.0,62.2
+CHATRA,Jharkhand,24.2,84.87,chickpea|maize|mustard|pigeonpeas|rice|wheat,337,322,148,72,211,134,24.6,1173.0,64.2
+GARHWA,Jharkhand,24.17,83.8,chickpea|maize|mustard|pigeonpeas|rice|wheat,392,365,151,74,208,121,25.3,1363.0,64.3
+KODERMA,Jharkhand,24.47,85.58,chickpea|maize|mustard|pigeonpeas|rice|wheat,210,288,179,70,288,163,24.5,1285.0,66.7
+LATEHAR,Jharkhand,23.72,84.47,chickpea|maize|mustard|pigeonpeas|rice|wheat,342,360,187,68,221,181,24.3,1308.0,64.3
+PALAMU,Jharkhand,24.02,84.07,chickpea|maize|mustard|pigeonpeas|rice|wheat,457,392,132,73,195,135,24.9,1399.0,65.8
+GODDA,Jharkhand,24.82,87.22,chickpea|maize|mustard|rice|wheat,180,289,206,66,325,229,25.0,1219.0,72.5
+PAKUR,Jharkhand,24.62,87.85,chickpea|maize|mustard|rice|wheat,180,272,132,64,296,183,25.6,1449.0,72.3
+RAMGARH,Jharkhand,23.62,85.52,chickpea|maize|mustard|pigeonpeas|rice,308,299,276,61,308,338,24.5,1431.0,66.7
+DHARWAD,Karnataka,15.38,75.12,chickpea|cotton|groundnut|maize|mungbean|onion|rice|sorghum|soybean|wheat,427,369,157,74,317,183,24.8,1130.0,68.2
+RAICHUR,Karnataka,16.22,77.35,chickpea|cotton|groundnut|pearlmillet|pigeonpeas|rice|sorghum|sunflower,342,355,158,74,315,290,27.2,988.0,59.2
+BIDAR,Karnataka,17.9,77.5,blackgram|chickpea|mungbean|pigeonpeas|sorghum|soybean|sugarcane,339,336,154,71,365,149,25.4,1128.0,61.3
+KOPPAL,Karnataka,15.57,76.0,chickpea|groundnut|maize|pearlmillet|rice|sorghum|sunflower,199,228,149,67,532,201,25.8,876.0,61.8
+BALLARI,Karnataka,15.15,76.93,chickpea|cotton|groundnut|maize|rice|sorghum,247,353,133,71,420,149,27.2,812.0,58.6
+CHIKKAMAGALURU,Karnataka,13.3,75.73,chickpea|fingermillet|maize|rice|sorghum,323,315,371,59,378,417,20.8,2053.0,77.6
+CHITRADURGA,Karnataka,14.0,76.5,chickpea|fingermillet|groundnut|maize|onion,384,293,145,72,374,187,24.6,941.0,66.4
+IDUKKI,Kerala,9.85,76.93,potato|rice|sugarcane,167,327,500,53,388,467,21.9,3829.0,86.0
+KARGIL,Ladakh,34.55,76.13,barley|fingermillet|wheat,283,216,290,77,388,240,6.2,455.0,56.5
+ALIRAJPUR,Madhya Pradesh,22.3,74.35,blackgram|chickpea|cotton|groundnut|maize|pearlmillet|sorghum|soybean|wheat,347,397,118,74,271,92,25.5,965.0,63.0
+NARSINGHPUR,Madhya Pradesh,22.92,79.17,blackgram|chickpea|lentil|pigeonpeas|rice|soybean|sugarcane|wheat,381,434,213,63,193,243,25.5,1342.0,60.6
+SATNA,Madhya Pradesh,24.33,80.55,blackgram|chickpea|lentil|pigeonpeas|rice|soybean|wheat,418,353,105,75,170,90,24.0,1128.0,63.0
+SHEOPUR,Madhya Pradesh,25.67,76.7,chickpea|mustard|pearlmillet|rice|sesamum|soybean|wheat,213,261,126,75,457,77,25.2,1126.0,60.2
+BURHANPUR,Madhya Pradesh,21.3,76.22,chickpea|cotton|maize|sorghum|soybean|wheat,433,457,128,73,306,105,26.7,1159.0,58.9
+DINDORI,Madhya Pradesh,22.95,81.08,chickpea|lentil|maize|mustard|rice|wheat,365,405,260,63,208,275,22.7,1156.0,65.4
+MANDLA,Madhya Pradesh,22.7,81.0,chickpea|lentil|maize|mustard|rice|wheat,421,385,219,71,204,159,23.5,1310.0,62.7
+PANNA,Madhya Pradesh,24.72,80.17,blackgram|chickpea|lentil|rice|sesamum|wheat,247,249,135,74,319,91,24.8,1177.0,61.3
+SATARA,Maharashtra,17.7,74.0,chickpea|groundnut|maize|pearlmillet|rice|sorghum|soybean|sugarcane|wheat,326,426,218,68,312,260,23.6,1179.0,69.1
+NANDURBAR,Maharashtra,21.38,74.37,chickpea|cotton|maize|pigeonpeas|rice|sorghum|soybean|wheat,434,375,124,73,302,90,26.9,899.0,59.9
+AHMEDNAGAR,Maharashtra,19.08,74.72,chickpea|cotton|maize|pearlmillet|sorghum|sugarcane|wheat,336,429,127,72,276,151,24.9,1060.0,59.8
+NASHIK,Maharashtra,19.98,73.78,chickpea|cotton|maize|pearlmillet|rice|soybean|wheat,409,449,174,70,214,156,24.4,1077.0,64.5
+PUNE,Maharashtra,18.52,73.83,chickpea|groundnut|pearlmillet|rice|sorghum|sugarcane|wheat,381,397,170,69,328,137,24.8,1093.0,63.6
+AURANGABAD,Maharashtra,19.88,75.32,chickpea|cotton|maize|rice|sorghum|wheat,422,480,140,71,219,116,25.5,1046.0,58.3
+BEED,Maharashtra,18.83,75.75,chickpea|cotton|pearlmillet|pigeonpeas|sorghum|soybean,468,440,146,74,285,114,25.2,1042.0,58.9
+BULDHANA,Maharashtra,20.52,76.17,chickpea|cotton|maize|pigeonpeas|soybean|wheat,416,429,103,74,310,100,25.0,1120.0,59.6
+CHANDEL,Manipur,24.32,93.98,maize|mustard|potato|rice,178,298,334,55,362,352,19.6,1024.0,76.9
+TAMENGLONG,Manipur,24.98,93.48,maize|mustard|potato|rice,221,340,1280,51,302,688,20.9,2240.0,79.8
+UKHRUL,Manipur,25.12,94.37,maize|mustard|potato|rice,175,294,343,55,307,296,15.5,1231.0,77.8
+BISHNUPUR,Manipur,24.63,93.77,mustard|potato|rice,229,350,780,52,316,526,21.5,1239.0,77.6
+CHURACHANDPUR,Manipur,24.33,93.68,maize|mustard|rice,195,333,372,54,311,284,20.3,1214.0,80.0
+THOUBAL,Manipur,24.65,93.98,mustard|potato|rice,217,297,462,52,332,544,22.0,1114.0,73.4
+IMPHAL EAST,Manipur,24.8,93.95,mustard|rice,210,323,350,53,311,387,21.3,1182.0,74.9
+IMPHAL WEST,Manipur,24.82,93.9,mustard|rice,219,315,960,54,306,536,20.9,1344.0,77.3
+WEST GARO HILLS,Meghalaya,25.52,90.22,cotton|jute|maize|mustard|rice,231,275,259,52,375,295,23.3,1797.0,75.8
+EAST GARO HILLS,Meghalaya,25.48,90.62,cotton|maize|rice,218,273,241,51,394,235,23.3,1682.0,81.3
+EAST KHASI HILLS,Meghalaya,25.57,91.88,maize|potato|rice,230,293,245,51,420,371,17.2,1458.0,77.6
+NORTH GARO HILLS,Meghalaya,25.88,90.58,cotton|mustard|rice,228,312,281,55,454,198,23.8,2565.0,80.4
+WEST JAINTIA HILLS,Meghalaya,25.45,92.2,maize|rice|soybean,224,312,250,52,400,442,17.6,1474.0,81.3
+WEST KHASI HILLS,Meghalaya,25.52,91.27,maize|potato|rice,239,293,373,49,407,555,17.4,2001.0,82.3
+RI BHOI,Meghalaya,25.9,91.88,maize|rice,195,289,261,55,378,189,22.0,2104.0,79.6
+SOUTH GARO HILLS,Meghalaya,25.2,90.63,maize|rice,208,259,222,50,402,409,24.1,2727.0,81.5
+AIZAWL,Mizoram,23.73,92.72,maize|rice|sugarcane,217,313,336,53,282,347,19.5,1429.0,77.3
+SERCHHIP,Mizoram,23.3,92.85,maize|rice|sugarcane,233,329,555,54,259,383,18.7,1950.0,79.0
+KONDAGAON,Chhattisgarh,19.6,81.67,blackgram|maize|rice,294,283,213,64,406,207,24.5,1459.0,65.8
+BASTAR,Chhattisgarh,19.07,82.02,maize|rice,313,280,164,65,425,178,24.6,1741.0,67.2
+GANDHINAGAR,Gujarat,23.22,72.68,cotton|pearlmillet|potato|rice|wheat,284,248,167,75,335,108,27.1,1050.0,56.3
+GADAG,Karnataka,15.4,75.75,chickpea|cotton|groundnut|maize|mungbean|onion|sorghum|sunflower,352,258,127,75,412,327,25.2,908.0,64.3
+CHAMPHAI,Mizoram,23.47,93.32,maize|rice,212,346,407,53,262,423,17.9,1375.0,77.2
+KOLASIB,Mizoram,24.22,92.67,maize|rice,162,265,243,52,398,242,21.6,1934.0,79.8
+LAWNGTLAI,Mizoram,22.52,92.9,maize|rice,177,288,317,53,372,375,21.3,2171.0,80.3
+LUNGLEI,Mizoram,22.9,92.75,maize|rice,220,303,507,53,346,360,20.2,2020.0,80.5
+MAMIT,Mizoram,23.92,92.48,maize|rice,179,287,201,54,360,253,22.8,1571.0,78.6
+SAIHA,Mizoram,22.48,92.97,maize|rice,193,300,518,53,360,445,22.0,2149.0,79.6
+KOHIMA,Nagaland,25.67,94.12,maize|mustard|potato|rice|soybean,228,347,948,53,287,476,17.0,4107.0,81.7
+KIPHIRE,Nagaland,25.9,94.78,maize|mustard|rice|soybean,209,253,900,53,349,482,17.6,2163.0,78.2
+LONGLENG,Nagaland,26.52,94.93,maize|mustard|rice|soybean,234,282,524,50,419,425,18.1,2096.0,81.1
+MON,Nagaland,26.72,95.03,maize|mustard|rice|soybean,230,272,524,54,346,481,20.6,2318.0,83.0
+PHEK,Nagaland,25.67,94.47,maize|mustard|rice|soybean,203,279,390,53,325,420,18.2,1695.0,78.0
+TUENSANG,Nagaland,26.23,94.82,maize|mustard|rice|soybean,219,324,593,54,355,472,16.9,2727.0,82.5
+ZUNHEBOTO,Nagaland,26.02,94.52,maize|mustard|rice|soybean,191,359,446,53,327,344,16.8,1843.0,77.1
+DIMAPUR,Nagaland,25.8,93.78,maize|mustard|rice,189,264,181,57,376,244,24.3,1257.0,75.3
+CUTTACK,Odisha,20.45,85.82,mungbean|rice,187,302,202,63,347,278,26.8,1705.0,75.9
+GAJAPATI,Odisha,18.88,84.2,maize|rice,181,277,411,56,375,388,25.7,1897.0,74.6
+GANJAM,Odisha,19.37,85.05,mungbean|rice,187,350,191,63,367,210,26.9,1478.0,79.9
+KENDRAPARA,Odisha,20.52,86.47,mungbean|rice,187,401,178,66,205,271,26.7,1695.0,78.0
+KHORDHA,Odisha,20.15,85.65,mungbean|rice,187,283,203,60,392,294,26.8,1800.0,77.2
+KORAPUT,Odisha,18.8,82.7,fingermillet|rice,259,273,309,61,429,338,22.8,1444.0,72.7
+MALKANGIRI,Odisha,18.25,82.13,rice|sesamum,175,247,184,64,387,215,26.2,2005.0,70.5
+NABARANGPUR,Odisha,19.23,82.55,maize|rice,288,281,169,63,438,280,24.5,1598.0,67.5
+KARAIKAL,Puducherry,11.02,79.87,blackgram|mungbean|rice,250,353,316,69,313,372,28.1,1695.0,75.1
+PONDICHERRY,Puducherry,11.92,79.82,rice|sugarcane,254,298,231,68,323,285,27.9,1472.0,76.2
+HOSHIARPUR,Punjab,31.58,75.98,maize|rice|sugarcane|wheat,224,234,448,63,432,389,22.8,946.0,65.9
+PATHANKOT,Punjab,32.27,75.63,maize|rice|sugarcane|wheat,217,264,592,61,378,602,22.1,1204.0,69.0
+BATHINDA,Punjab,30.2,74.93,cotton|rice|wheat,131,223,138,78,445,122,24.5,490.0,60.7
+FAZILKA,Punjab,30.4,74.02,cotton|rice|wheat,186,218,100,78,437,101,24.5,454.0,60.6
+RUPNAGAR,Punjab,30.97,76.52,maize|rice|wheat,187,250,288,71,385,259,22.4,904.0,69.4
+SHAHID BHAGAT SINGH NAGAR,Punjab,31.12,76.1,maize|rice|wheat,148,222,137,70,436,164,22.6,754.0,70.2
+AMRITSAR,Punjab,31.58,74.98,rice|wheat,165,259,150,79,372,138,22.8,836.0,69.1
+BARNALA,Punjab,30.37,75.53,rice|wheat,176,247,106,79,396,121,23.5,658.0,65.4
+BHILWARA,Rajasthan,25.35,74.63,blackgram|chickpea|cotton|maize|mustard|sorghum|wheat,235,246,110,74,320,84,24.8,884.0,55.7
+PALI,Rajasthan,25.77,73.32,chickpea|mungbean|mustard|pearlmillet|sesamum|sorghum|wheat,109,216,116,74,542,56,26.2,695.0,51.5
